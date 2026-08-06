@@ -1,0 +1,22 @@
+{
+  "name": "summitops-intelligence",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "concurrently -n SERVER,CLIENT -c auto \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
+    "dev:client": "npm run dev --prefix client",
+    "build": "npm run build --prefix server && npm run build --prefix client",
+    "typecheck": "npm run typecheck --prefix server && npm run typecheck --prefix client",
+    "dev:server": "npm run dev --prefix server",
+    "start": "npm run start --prefix server"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "concurrently": "^9.2.4"
+  }
+}
