@@ -184,6 +184,78 @@ describe("reportRoutes", () => {
     });
   });
 
+  it("returns paginated weekly reports for authenticated requests", async () => {
+    const token = createAccessToken("manager");
+
+    mock.method(
+      WeeklyReport,
+      "countDocuments",
+      async () => 1
+    );
+
+    const leanMock = mock.fn(
+      async () => [
+        {
+          status: "draft",
+        },
+      ]
+    );
+
+    const limitMock = mock.fn(
+      () => ({
+        lean: leanMock,
+      })
+    );
+
+    const skipMock = mock.fn(
+      () => ({
+        limit: limitMock,
+      })
+    );
+
+    const sortMock = mock.fn(
+      () => ({
+        skip: skipMock,
+      })
+    );
+
+    mock.method(
+      WeeklyReport,
+      "find",
+      () =>
+        ({
+          sort: sortMock,
+        }) as never
+    );
+
+    const response = await fetch(
+      `${baseUrl}/api/reports?page=1&limit=5`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    assert.equal(response.status, 200);
+
+    const body = await response.json();
+
+    assert.deepEqual(body, {
+      data: [
+        {
+          status: "draft",
+        },
+      ],
+      pagination: {
+        page: 1,
+        limit: 5,
+        total: 1,
+        totalPages: 1,
+      },
+    });
+  });
+
   it("rejects non-UTC weekly report dates", async () => {
     const token = createAccessToken("manager");
 

@@ -191,45 +191,158 @@ describe("generateWeeklyReport", () => {
 
 describe("getWeeklyReports", () => {
   it("returns weekly reports sorted by newest week first", async () => {
-  const reports = [
-    {
-      weekStart: new Date(
-        "2026-08-02T00:00:00.000Z"
-      ),
-    },
-  ];
+    const reports = [
+      {
+        weekStart: new Date(
+          "2026-08-02T00:00:00.000Z"
+        ),
+      },
+    ];
 
-  const sortMock = mock.fn(
-    async () => reports
-  );
+    mock.method(
+      WeeklyReport,
+      "countDocuments",
+      async () => 25
+    );
 
-  const findMock = mock.method(
-    WeeklyReport,
-    "find",
-    () =>
-      ({
-        sort: sortMock,
-      }) as never
-  );
+    const leanMock = mock.fn(
+      async () => reports
+    );
 
-  const result =
-    await getWeeklyReports();
+    const limitMock = mock.fn(
+      (_limit: number) => ({
+        lean: leanMock,
+      })
+    );
 
-  assert.equal(
-    findMock.mock.callCount(),
-    1
-  );
+    const skipMock = mock.fn(
+      (_skip: number) => ({
+        limit: limitMock,
+      })
+    );
 
-  assert.deepEqual(
-    sortMock.mock.calls[0].arguments[0],
-    {
+    const sortMock = mock.fn(
+      (_sort: Record<string, number>) => ({
+        skip: skipMock,
+      })
+    );
+
+    const findMock = mock.method(
+      WeeklyReport,
+      "find",
+      () =>
+        ({
+          sort: sortMock,
+        }) as never
+    );
+
+    const result = await getWeeklyReports({
+      page: 2,
+      limit: 10,
+    });
+
+    assert.equal(
+      findMock.mock.callCount(),
+      1
+    );
+
+    const firstFindCall =
+      findMock.mock.calls[0];
+
+    assert.ok(firstFindCall);
+    assert.deepEqual(firstFindCall.arguments[0], {});
+
+    const firstSortCall =
+      sortMock.mock.calls[0];
+
+    assert.ok(firstSortCall);
+    assert.deepEqual(firstSortCall.arguments[0], {
       weekStart: -1,
-    }
-  );
+    });
 
-  assert.equal(
-    result,
-    reports
-  );
+    const firstSkipCall =
+      skipMock.mock.calls[0];
+
+    assert.ok(firstSkipCall);
+    assert.equal(firstSkipCall.arguments[0], 10);
+
+    const firstLimitCall =
+      limitMock.mock.calls[0];
+
+    assert.ok(firstLimitCall);
+    assert.equal(firstLimitCall.arguments[0], 10);
+
+    assert.deepEqual(result, {
+      data: reports,
+      pagination: {
+        page: 2,
+        limit: 10,
+        total: 25,
+        totalPages: 3,
+      },
+    });
+  });
+
+  it("applies filters to weekly reports query", async () => {
+    const departmentId = new Types.ObjectId().toString();
+    const weekStartFrom = new Date("2026-08-01T00:00:00.000Z");
+    const weekStartTo = new Date("2026-08-31T23:59:59.999Z");
+
+    mock.method(
+      WeeklyReport,
+      "countDocuments",
+      async () => 0
+    );
+
+    const leanMock = mock.fn(
+      async () => []
+    );
+
+    const limitMock = mock.fn(
+      (_limit: number) => ({
+        lean: leanMock,
+      })
+    );
+
+    const skipMock = mock.fn(
+      (_skip: number) => ({
+        limit: limitMock,
+      })
+    );
+
+    const sortMock = mock.fn(
+      (_sort: Record<string, number>) => ({
+        skip: skipMock,
+      })
+    );
+
+    const findMock = mock.method(
+      WeeklyReport,
+      "find",
+      () =>
+        ({
+          sort: sortMock,
+        }) as never
+    );
+
+    await getWeeklyReports({
+      page: 1,
+      limit: 20,
+      departmentId,
+      weekStartFrom,
+      weekStartTo,
+    });
+
+    const firstFindCall =
+      findMock.mock.calls[0];
+
+    assert.ok(firstFindCall);
+    assert.deepEqual(firstFindCall.arguments[0], {
+      department: departmentId,
+      weekStart: {
+        $gte: weekStartFrom,
+        $lte: weekStartTo,
+      },
+    });
+  });
 });
-})

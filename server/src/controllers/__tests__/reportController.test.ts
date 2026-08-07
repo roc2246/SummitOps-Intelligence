@@ -20,38 +20,39 @@ import {
 
 import {
   createWeeklyReport,
+  listWeeklyReports,
 } from "../reportController.js";
+
+function createResponseMock() {
+  const response = {
+    statusCode: 200,
+    jsonBody: undefined as unknown,
+    locals: {
+      weeklyReportInput: {
+        departmentId: "6895cd84173241d61e612345",
+        weekStart: new Date("2026-08-02T00:00:00.000Z"),
+        weekEnd: new Date("2026-08-08T23:59:59.999Z"),
+      },
+    },
+
+    status(code: number) {
+      this.statusCode = code;
+      return this;
+    },
+
+    json(body: unknown) {
+      this.jsonBody = body;
+      return this;
+    },
+  };
+
+  return response;
+}
 
 describe("createWeeklyReport", () => {
   afterEach(() => {
     mock.restoreAll();
   });
-
-  function createResponseMock() {
-    const response = {
-      statusCode: 200,
-      jsonBody: undefined as unknown,
-      locals: {
-        weeklyReportInput: {
-          departmentId: "6895cd84173241d61e612345",
-          weekStart: new Date("2026-08-02T00:00:00.000Z"),
-          weekEnd: new Date("2026-08-08T23:59:59.999Z"),
-        },
-      },
-
-      status(code: number) {
-        this.statusCode = code;
-        return this;
-      },
-
-      json(body: unknown) {
-        this.jsonBody = body;
-        return this;
-      },
-    };
-
-    return response;
-  }
 
   it("creates a weekly report and returns status 201", async () => {
     const request = {
@@ -159,51 +160,122 @@ describe("createWeeklyReport", () => {
 });
 
 describe("listWeeklyReports", () => {
+  afterEach(() => {
+    mock.restoreAll();
+  });
+
   it("returns weekly reports", async () => {
-  const reports = [
-    {
-      _id: "report-1",
-      status: "draft",
-    },
-  ];
+    const reports = [
+      {
+        _id: "report-1",
+        status: "draft",
+      },
+    ];
 
-  const sortMock = mock.fn(
-    async () => reports
-  );
+    mock.method(
+      WeeklyReport,
+      "countDocuments",
+      async () => 1
+    );
 
-  mock.method(
-    WeeklyReport,
-    "find",
-    () =>
-      ({
-        sort: sortMock,
-      }) as never
-  );
+    const leanMock = mock.fn(
+      async () => reports
+    );
 
-  const request = {} as Request;
-  const response =
-    createResponseMock();
-  const next = mock.fn();
+    const limitMock = mock.fn(
+      () => ({
+        lean: leanMock,
+      })
+    );
 
-  await listWeeklyReports(
-    request,
-    response as unknown as Response,
-    next as unknown as NextFunction
-  );
+    const skipMock = mock.fn(
+      () => ({
+        limit: limitMock,
+      })
+    );
 
-  assert.equal(
-    response.statusCode,
-    200
-  );
+    const sortMock = mock.fn(
+      () => ({
+        skip: skipMock,
+      })
+    );
 
-  assert.deepEqual(
-    response.jsonBody,
-    reports
-  );
+    mock.method(
+      WeeklyReport,
+      "find",
+      () =>
+        ({
+          sort: sortMock,
+        }) as never
+    );
 
-  assert.equal(
-    next.mock.callCount(),
-    0
-  );
+    const request = {
+      query: {
+        page: "2",
+        limit: "10",
+      },
+    } as unknown as Request;
+
+    const response =
+      createResponseMock();
+
+    const next = mock.fn();
+
+    await listWeeklyReports(
+      request,
+      response as unknown as Response,
+      next as unknown as NextFunction
+    );
+
+    assert.equal(
+      response.statusCode,
+      200
+    );
+
+    assert.deepEqual(
+      response.jsonBody,
+      {
+        data: reports,
+        pagination: {
+          page: 2,
+          limit: 10,
+          total: 1,
+          totalPages: 1,
+        },
+      }
+    );
+
+    assert.equal(
+      next.mock.callCount(),
+      0
+    );
+  });
+
+  it("returns 400 for invalid departmentId filter", async () => {
+    const request = {
+      query: {
+        departmentId: "invalid-object-id",
+      },
+    } as unknown as Request;
+
+    const response =
+      createResponseMock();
+
+    const next = mock.fn();
+
+    await listWeeklyReports(
+      request,
+      response as unknown as Response,
+      next as unknown as NextFunction
+    );
+
+    assert.equal(response.statusCode, 400);
+
+    assert.deepEqual(response.jsonBody, {
+      success: false,
+      message: "Invalid departmentId",
+    });
+
+    assert.equal(next.mock.callCount(), 0);
   });
 });
