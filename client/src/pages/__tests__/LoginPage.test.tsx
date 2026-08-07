@@ -1,5 +1,3 @@
-import "@testing-library/jest-dom";
-
 import {
   describe,
   expect,
@@ -13,6 +11,9 @@ import {
 } from "@testing-library/react";
 
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter } from "react-router-dom";
+
+import { AuthProvider } from "../../context/AuthContext";
 
 import LoginPage from "../LoginPage";
 
@@ -21,8 +22,18 @@ vi.mock("../../api/authApi", () => ({
 }));
 
 describe("LoginPage", () => {
+  function renderLoginPage() {
+    render(
+      <MemoryRouter>
+        <AuthProvider>
+          <LoginPage />
+        </AuthProvider>
+      </MemoryRouter>
+    );
+  }
+
   it("renders the login form", () => {
-    render(<LoginPage />);
+    renderLoginPage();
 
     expect(
       screen.getByRole("heading", {
@@ -48,7 +59,7 @@ describe("LoginPage", () => {
   it("allows the user to enter an email and password", async () => {
     const user = userEvent.setup();
 
-    render(<LoginPage />);
+    renderLoginPage();
 
     const emailInput =
       screen.getByLabelText(/email/i);

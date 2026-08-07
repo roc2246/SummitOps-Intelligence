@@ -1,4 +1,6 @@
-import "@testing-library/jest-dom";
+import {
+  useEffect,
+} from "react";
 
 import {
   beforeEach,
@@ -43,14 +45,21 @@ function AuthenticatedDashboard() {
     user,
   } = useAuth();
 
-  if (!user) {
-    login({
-      id: "user-123",
-      username: "supervisor",
-      email: "supervisor@example.com",
-      role: "supervisor",
-    }, "jwt-token-123");
+  useEffect(() => {
+    if (!user) {
+      login(
+        {
+          id: "user-123",
+          username: "supervisor",
+          email: "supervisor@example.com",
+          role: "supervisor",
+        },
+        "jwt-token-123"
+      );
+    }
+  }, [login, user]);
 
+  if (!user) {
     return null;
   }
 

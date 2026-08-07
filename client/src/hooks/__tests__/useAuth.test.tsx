@@ -1,5 +1,3 @@
-import "@testing-library/jest-dom";
-
 // Note: The filename has a typo. It should be useAuth.test.ts instead of useAth.test.ts
 
 import {
