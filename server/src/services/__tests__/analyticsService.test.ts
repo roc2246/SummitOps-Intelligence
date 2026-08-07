@@ -8,6 +8,7 @@ import type { IWorkOrderSnapshot } from "../../models/index.js";
 
 describe("calculateWeeklyMetrics", () => {
   const departmentId = new Types.ObjectId();
+  const reportCutoff = new Date("2026-08-08T23:59:59.999Z");
 
   function createWorkOrder(
     overrides: Partial<IWorkOrderSnapshot> = {}
@@ -27,7 +28,7 @@ describe("calculateWeeklyMetrics", () => {
   }
 
   it("returns zero metrics for an empty work-order array", () => {
-    const metrics = calculateWeeklyMetrics([]);
+    const metrics = calculateWeeklyMetrics([], reportCutoff);
 
     assert.deepEqual(metrics, {
       openedWorkOrders: 0,
@@ -50,7 +51,10 @@ describe("calculateWeeklyMetrics", () => {
       }),
     ];
 
-    const metrics = calculateWeeklyMetrics(workOrders);
+    const metrics = calculateWeeklyMetrics(
+      workOrders,
+      reportCutoff
+    );
 
     assert.equal(metrics.openedWorkOrders, 3);
   });
@@ -72,7 +76,10 @@ describe("calculateWeeklyMetrics", () => {
       }),
     ];
 
-    const metrics = calculateWeeklyMetrics(workOrders);
+    const metrics = calculateWeeklyMetrics(
+      workOrders,
+      reportCutoff
+    );
 
     assert.equal(metrics.completedWorkOrders, 2);
   });
@@ -104,14 +111,17 @@ describe("calculateWeeklyMetrics", () => {
       }),
     ];
 
-    const metrics = calculateWeeklyMetrics(workOrders);
+    const metrics = calculateWeeklyMetrics(
+      workOrders,
+      reportCutoff
+    );
 
     assert.equal(metrics.openBacklog, 3);
   });
 
   it("counts overdue work orders", () => {
-    const pastDueDate = new Date("2020-01-01T00:00:00.000Z");
-    const futureDueDate = new Date("2100-01-01T00:00:00.000Z");
+    const pastDueDate = new Date("2026-08-01T00:00:00.000Z");
+    const futureDueDate = new Date("2026-08-15T00:00:00.000Z");
 
     const workOrders = [
       createWorkOrder({
@@ -144,7 +154,10 @@ describe("calculateWeeklyMetrics", () => {
       }),
     ];
 
-    const metrics = calculateWeeklyMetrics(workOrders);
+    const metrics = calculateWeeklyMetrics(
+      workOrders,
+      reportCutoff
+    );
 
     assert.equal(metrics.overdueWorkOrders, 2);
   });
@@ -156,7 +169,10 @@ describe("calculateWeeklyMetrics", () => {
       }),
     ];
 
-    const metrics = calculateWeeklyMetrics(workOrders);
+    const metrics = calculateWeeklyMetrics(
+      workOrders,
+      reportCutoff
+    );
 
     assert.equal(metrics.overdueWorkOrders, 0);
   });
@@ -178,7 +194,10 @@ describe("calculateWeeklyMetrics", () => {
       }),
     ];
 
-    const metrics = calculateWeeklyMetrics(workOrders);
+    const metrics = calculateWeeklyMetrics(
+      workOrders,
+      reportCutoff
+    );
 
     assert.equal(metrics.totalLaborHours, 6.5);
   });
@@ -205,7 +224,10 @@ describe("calculateWeeklyMetrics", () => {
       }),
     ];
 
-    const metrics = calculateWeeklyMetrics(workOrders);
+    const metrics = calculateWeeklyMetrics(
+      workOrders,
+      reportCutoff
+    );
 
     assert.equal(metrics.completionRate, 50);
   });
@@ -227,13 +249,16 @@ describe("calculateWeeklyMetrics", () => {
       }),
     ];
 
-    const metrics = calculateWeeklyMetrics(workOrders);
+    const metrics = calculateWeeklyMetrics(
+      workOrders,
+      reportCutoff
+    );
 
     assert.equal(metrics.completionRate, 33);
   });
 
   it("calculates all metrics together correctly", () => {
-    const pastDueDate = new Date("2020-01-01T00:00:00.000Z");
+    const pastDueDate = new Date("2026-08-01T00:00:00.000Z");
 
     const workOrders = [
       createWorkOrder({
@@ -263,7 +288,10 @@ describe("calculateWeeklyMetrics", () => {
       }),
     ];
 
-    const metrics = calculateWeeklyMetrics(workOrders);
+    const metrics = calculateWeeklyMetrics(
+      workOrders,
+      reportCutoff
+    );
 
     assert.deepEqual(metrics, {
       openedWorkOrders: 4,
@@ -272,6 +300,29 @@ describe("calculateWeeklyMetrics", () => {
       openBacklog: 2,
       completionRate: 25,
       totalLaborHours: 10.5,
+    });
+  });
+
+  it("does not use the current system time for overdue counts", () => {
+    const workOrders = [
+      createWorkOrder({
+        dueDateSource: new Date("2099-01-01T00:00:00.000Z"),
+        status: "open",
+      }),
+    ];
+
+    const metrics = calculateWeeklyMetrics(
+      workOrders,
+      reportCutoff
+    );
+
+    assert.deepEqual(metrics, {
+      openedWorkOrders: 1,
+      completedWorkOrders: 0,
+      overdueWorkOrders: 0,
+      openBacklog: 1,
+      completionRate: 0,
+      totalLaborHours: 0,
     });
   });
 });

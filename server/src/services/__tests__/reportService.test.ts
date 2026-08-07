@@ -3,11 +3,13 @@ import { afterEach, describe, it, mock } from "node:test";
 import { Types } from "mongoose";
 
 import {
+  Department,
   WeeklyReport,
   WorkOrderSnapshot,
 } from "../../models/index.js";
 
 import { generateWeeklyReport } from "../reportService.js";
+import { AppError } from "../../utils/AppError.js";
 
 import type {
   IWorkOrderSnapshot,
@@ -25,6 +27,12 @@ describe("generateWeeklyReport", () => {
     const weekEnd = new Date("2026-08-08T23:59:59.999Z");
 
     const workOrders: IWorkOrderSnapshot[] = [];
+
+    mock.method(
+      Department,
+      "exists",
+      async () => ({ _id: departmentId }) as never
+    );
 
     const findMock = mock.method(
       WorkOrderSnapshot,
@@ -94,6 +102,12 @@ describe("generateWeeklyReport", () => {
     ];
 
     mock.method(
+      Department,
+      "exists",
+      async () => ({ _id: departmentId }) as never
+    );
+
+    mock.method(
       WorkOrderSnapshot,
       "find",
       async () => workOrders
@@ -141,6 +155,12 @@ describe("generateWeeklyReport", () => {
     const weekEnd = new Date("2026-08-08T23:59:59.999Z");
 
     mock.method(
+      Department,
+      "exists",
+      async () => ({ _id: departmentId }) as never
+    );
+
+    mock.method(
       WorkOrderSnapshot,
       "find",
       async () => []
@@ -166,5 +186,42 @@ describe("generateWeeklyReport", () => {
     );
 
     assert.equal(result, createdReport);
+  });
+
+  it("rejects a report for a missing department", async () => {
+    const departmentId = new Types.ObjectId();
+
+    const weekStart = new Date("2026-08-02T00:00:00.000Z");
+    const weekEnd = new Date("2026-08-08T23:59:59.999Z");
+
+    const existsMock = mock.method(
+      Department,
+      "exists",
+      async () => null
+    );
+
+    const findMock = mock.method(
+      WorkOrderSnapshot,
+      "find",
+      async () => []
+    );
+
+    await assert.rejects(
+      () =>
+        generateWeeklyReport(
+          departmentId.toString(),
+          weekStart,
+          weekEnd
+        ),
+      (error: unknown) => {
+        assert.ok(error instanceof AppError);
+        assert.equal(error.statusCode, 404);
+        assert.equal(error.message, "Department not found");
+        return true;
+      }
+    );
+
+    assert.equal(existsMock.mock.callCount(), 1);
+    assert.equal(findMock.mock.callCount(), 0);
   });
 });

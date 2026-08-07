@@ -20,6 +20,9 @@ describe("validateWeeklyReport", () => {
     return {
       statusCode: 200,
       jsonBody: undefined as unknown,
+      locals: {} as {
+        weeklyReportInput?: unknown;
+      },
 
       status(code: number) {
         this.statusCode = code;
@@ -59,6 +62,20 @@ describe("validateWeeklyReport", () => {
     assert.equal(
       next.mock.callCount(),
       1
+    );
+
+    assert.deepEqual(
+      response.locals.weeklyReportInput,
+      {
+        departmentId:
+          "6895cd84173241d61e612345",
+        weekStart: new Date(
+          "2026-08-02T00:00:00.000Z"
+        ),
+        weekEnd: new Date(
+          "2026-08-08T23:59:59.999Z"
+        ),
+      }
     );
 
     assert.equal(
@@ -174,7 +191,8 @@ describe("validateWeeklyReport", () => {
       response.jsonBody,
       {
         success: false,
-        message: "Invalid weekStart",
+        message:
+          "weekStart must be an ISO 8601 UTC timestamp",
       }
     );
 
@@ -215,8 +233,51 @@ describe("validateWeeklyReport", () => {
       response.jsonBody,
       {
         success: false,
-        message: "Invalid weekEnd",
+        message:
+          "weekEnd must be an ISO 8601 UTC timestamp",
       }
+    );
+  });
+
+  it("returns 400 for a non-UTC weekStart string", () => {
+    const request = {
+      body: {
+        departmentId:
+          "6895cd84173241d61e612345",
+        weekStart: "2026-08-02",
+        weekEnd:
+          "2026-08-08T23:59:59.999Z",
+      },
+    } as Request;
+
+    const response =
+      createResponseMock();
+
+    const next = mock.fn();
+
+    validateWeeklyReport(
+      request,
+      response as unknown as Response,
+      next as unknown as NextFunction
+    );
+
+    assert.equal(
+      response.statusCode,
+      400
+    );
+
+    assert.deepEqual(
+      response.jsonBody,
+      {
+        success: false,
+        message:
+          "weekStart must be an ISO 8601 UTC timestamp",
+      }
+    );
+
+    assert.equal(
+      next.mock.callCount(),
+      0
     );
   });
 

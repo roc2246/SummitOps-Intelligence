@@ -5,6 +5,7 @@ import type {
 
 export function calculateWeeklyMetrics(
   workOrders: IWorkOrderSnapshot[],
+  reportCutoff: Date,
 ): IWeeklyReportMetrics {
   const openedWorkOrders = workOrders.length;
 
@@ -20,7 +21,7 @@ export function calculateWeeklyMetrics(
   const overdueWorkOrders = workOrders.filter(
     (workOrder) =>
       workOrder.dueDateSource !== undefined &&
-      workOrder.dueDateSource < new Date() &&
+      workOrder.dueDateSource < reportCutoff &&
       workOrder.status !== "completed" &&
       workOrder.status !== "cancelled",
   ).length;

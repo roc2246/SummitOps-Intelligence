@@ -13,6 +13,7 @@ import type {
 } from "express";
 
 import {
+  Department,
   WeeklyReport,
   WorkOrderSnapshot,
 } from "../../models/index.js";
@@ -30,6 +31,13 @@ describe("createWeeklyReport", () => {
     const response = {
       statusCode: 200,
       jsonBody: undefined as unknown,
+      locals: {
+        weeklyReportInput: {
+          departmentId: "6895cd84173241d61e612345",
+          weekStart: new Date("2026-08-02T00:00:00.000Z"),
+          weekEnd: new Date("2026-08-08T23:59:59.999Z"),
+        },
+      },
 
       status(code: number) {
         this.statusCode = code;
@@ -47,19 +55,16 @@ describe("createWeeklyReport", () => {
 
   it("creates a weekly report and returns status 201", async () => {
     const request = {
-      body: {
-        departmentId: "6895cd84173241d61e612345",
-        weekStart: "2026-08-02T00:00:00.000Z",
-        weekEnd: "2026-08-08T23:59:59.999Z",
-      },
+      body: {},
     } as Request;
 
     const response = createResponseMock();
+    const validatedInput = response.locals.weeklyReportInput;
 
     const createdReport = {
-      department: request.body.departmentId,
-      weekStart: new Date(request.body.weekStart),
-      weekEnd: new Date(request.body.weekEnd),
+      department: validatedInput.departmentId,
+      weekStart: validatedInput.weekStart,
+      weekEnd: validatedInput.weekEnd,
       status: "draft",
       metrics: {
         openedWorkOrders: 0,
@@ -70,6 +75,12 @@ describe("createWeeklyReport", () => {
         totalLaborHours: 0,
       },
     };
+
+    mock.method(
+      Department,
+      "exists",
+      async () => ({ _id: validatedInput.departmentId }) as never
+    );
 
     mock.method(
       WorkOrderSnapshot,
@@ -103,17 +114,20 @@ describe("createWeeklyReport", () => {
 
   it("passes service errors to the error middleware", async () => {
     const request = {
-      body: {
-        departmentId: "6895cd84173241d61e612345",
-        weekStart: "2026-08-02T00:00:00.000Z",
-        weekEnd: "2026-08-08T23:59:59.999Z",
-      },
+      body: {},
     } as Request;
 
     const response = createResponseMock();
+    const validatedInput = response.locals.weeklyReportInput;
 
     const expectedError = new Error(
       "Database unavailable"
+    );
+
+    mock.method(
+      Department,
+      "exists",
+      async () => ({ _id: validatedInput.departmentId }) as never
     );
 
     mock.method(

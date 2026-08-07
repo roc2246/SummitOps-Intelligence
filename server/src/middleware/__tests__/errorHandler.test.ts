@@ -13,6 +13,7 @@ import type {
 import {
   errorHandler,
 } from "../errorHandler.js";
+import { AppError } from "../../utils/AppError.js";
 
 describe("errorHandler", () => {
   function createResponseMock() {
@@ -63,5 +64,54 @@ describe("errorHandler", () => {
         message: "Internal server error",
       }
     );
+  });
+
+  it("returns the app error status and message", () => {
+    const error = new AppError(
+      404,
+      "Department not found"
+    );
+
+    const request = {} as Request;
+    const response = createResponseMock();
+    const next = (() => {}) as NextFunction;
+
+    errorHandler(
+      error,
+      request,
+      response as unknown as Response,
+      next
+    );
+
+    assert.equal(response.statusCode, 404);
+
+    assert.deepEqual(response.jsonBody, {
+      success: false,
+      message: "Department not found",
+    });
+  });
+
+  it("returns 409 for duplicate key conflicts", () => {
+    const error = {
+      code: 11000,
+    };
+
+    const request = {} as Request;
+    const response = createResponseMock();
+    const next = (() => {}) as NextFunction;
+
+    errorHandler(
+      error as unknown as Error,
+      request,
+      response as unknown as Response,
+      next
+    );
+
+    assert.equal(response.statusCode, 409);
+
+    assert.deepEqual(response.jsonBody, {
+      success: false,
+      message: "A report already exists for that department and week.",
+    });
   });
 });

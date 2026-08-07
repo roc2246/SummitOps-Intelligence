@@ -8,6 +8,10 @@ import {
   generateWeeklyReport,
 } from "../services/index.js";
 
+import type {
+  ValidatedWeeklyReportInput,
+} from "../middleware/validateWeeklyReport.js";
+
 export async function createWeeklyReport(
   req: Request,
   res: Response,
@@ -18,12 +22,13 @@ export async function createWeeklyReport(
       departmentId,
       weekStart,
       weekEnd,
-    } = req.body;
+    } = res.locals
+      .weeklyReportInput as ValidatedWeeklyReportInput;
 
     const report = await generateWeeklyReport(
       departmentId,
-      new Date(weekStart),
-      new Date(weekEnd)
+      weekStart,
+      weekEnd
     );
 
     res.status(201).json(report);
