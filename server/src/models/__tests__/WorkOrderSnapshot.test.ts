@@ -4,11 +4,22 @@ import { Error as MongooseError, Types } from "mongoose";
 
 import WorkOrderSnapshot from "../WorkOrderSnapshot.js";
 
+async function getValidationError(document: {
+  validate: () => Promise<void>;
+}): Promise<MongooseError.ValidationError | undefined> {
+  try {
+    await document.validate();
+    return undefined;
+  } catch (error) {
+    return error as MongooseError.ValidationError;
+  }
+}
+
 describe("WorkOrderSnapshot model", () => {
   const validDepartmentId = new Types.ObjectId();
   const validCreatedAtSource = new Date("2026-08-01T12:00:00.000Z");
 
-  it("creates a valid work-order snapshot", () => {
+  it("creates a valid work-order snapshot", async () => {
     const snapshot = new WorkOrderSnapshot({
       externalId: "MX-1001",
       source: "maintainx",
@@ -23,7 +34,7 @@ describe("WorkOrderSnapshot model", () => {
       laborHours: 4.5,
     });
 
-    const validationError = snapshot.validateSync();
+    const validationError = await getValidationError(snapshot);
 
     assert.equal(validationError, undefined);
     assert.equal(snapshot.externalId, "MX-1001");
@@ -70,7 +81,7 @@ describe("WorkOrderSnapshot model", () => {
     assert.equal(snapshot.location, "Main Base");
   });
 
-  it("allows optional fields to be omitted", () => {
+  it("allows optional fields to be omitted", async () => {
     const snapshot = new WorkOrderSnapshot({
       externalId: "MANUAL-1",
       source: "manual",
@@ -79,7 +90,7 @@ describe("WorkOrderSnapshot model", () => {
       createdAtSource: validCreatedAtSource,
     });
 
-    const validationError = snapshot.validateSync();
+    const validationError = await getValidationError(snapshot);
 
     assert.equal(validationError, undefined);
     assert.equal(snapshot.category, undefined);
@@ -88,7 +99,7 @@ describe("WorkOrderSnapshot model", () => {
     assert.equal(snapshot.completedAtSource, undefined);
   });
 
-  it("rejects a snapshot without an external ID", () => {
+  it("rejects a snapshot without an external ID", async () => {
     const snapshot = new WorkOrderSnapshot({
       source: "maintainx",
       department: validDepartmentId,
@@ -96,14 +107,14 @@ describe("WorkOrderSnapshot model", () => {
       createdAtSource: validCreatedAtSource,
     });
 
-    const validationError = snapshot.validateSync();
+    const validationError = await getValidationError(snapshot);
 
     assert.ok(validationError instanceof MongooseError.ValidationError);
     assert.ok(validationError.errors.externalId);
     assert.equal(validationError.errors.externalId.kind, "required");
   });
 
-  it("rejects a snapshot without a department", () => {
+  it("rejects a snapshot without a department", async () => {
     const snapshot = new WorkOrderSnapshot({
       externalId: "MX-1004",
       source: "maintainx",
@@ -111,14 +122,14 @@ describe("WorkOrderSnapshot model", () => {
       createdAtSource: validCreatedAtSource,
     });
 
-    const validationError = snapshot.validateSync();
+    const validationError = await getValidationError(snapshot);
 
     assert.ok(validationError instanceof MongooseError.ValidationError);
     assert.ok(validationError.errors.department);
     assert.equal(validationError.errors.department.kind, "required");
   });
 
-  it("rejects a snapshot without a title", () => {
+  it("rejects a snapshot without a title", async () => {
     const snapshot = new WorkOrderSnapshot({
       externalId: "MX-1005",
       source: "maintainx",
@@ -126,14 +137,14 @@ describe("WorkOrderSnapshot model", () => {
       createdAtSource: validCreatedAtSource,
     });
 
-    const validationError = snapshot.validateSync();
+    const validationError = await getValidationError(snapshot);
 
     assert.ok(validationError instanceof MongooseError.ValidationError);
     assert.ok(validationError.errors.title);
     assert.equal(validationError.errors.title.kind, "required");
   });
 
-  it("rejects a snapshot without a source creation date", () => {
+  it("rejects a snapshot without a source creation date", async () => {
     const snapshot = new WorkOrderSnapshot({
       externalId: "MX-1006",
       source: "maintainx",
@@ -141,7 +152,7 @@ describe("WorkOrderSnapshot model", () => {
       title: "Missing source creation date",
     });
 
-    const validationError = snapshot.validateSync();
+    const validationError = await getValidationError(snapshot);
 
     assert.ok(validationError instanceof MongooseError.ValidationError);
     assert.ok(validationError.errors.createdAtSource);
@@ -151,7 +162,7 @@ describe("WorkOrderSnapshot model", () => {
     );
   });
 
-  it("rejects an unsupported source", () => {
+  it("rejects an unsupported source", async () => {
     const snapshot = new WorkOrderSnapshot({
       externalId: "MX-1007",
       source: "unsupported",
@@ -166,14 +177,14 @@ describe("WorkOrderSnapshot model", () => {
       createdAtSource: Date;
     });
 
-    const validationError = snapshot.validateSync();
+    const validationError = await getValidationError(snapshot);
 
     assert.ok(validationError instanceof MongooseError.ValidationError);
     assert.ok(validationError.errors.source);
     assert.equal(validationError.errors.source.kind, "enum");
   });
 
-  it("rejects an unsupported priority", () => {
+  it("rejects an unsupported priority", async () => {
     const snapshot = new WorkOrderSnapshot({
       externalId: "MX-1008",
       source: "maintainx",
@@ -190,14 +201,14 @@ describe("WorkOrderSnapshot model", () => {
       createdAtSource: Date;
     });
 
-    const validationError = snapshot.validateSync();
+    const validationError = await getValidationError(snapshot);
 
     assert.ok(validationError instanceof MongooseError.ValidationError);
     assert.ok(validationError.errors.priority);
     assert.equal(validationError.errors.priority.kind, "enum");
   });
 
-  it("rejects an unsupported status", () => {
+  it("rejects an unsupported status", async () => {
     const snapshot = new WorkOrderSnapshot({
       externalId: "MX-1009",
       source: "maintainx",
@@ -214,14 +225,14 @@ describe("WorkOrderSnapshot model", () => {
       createdAtSource: Date;
     });
 
-    const validationError = snapshot.validateSync();
+    const validationError = await getValidationError(snapshot);
 
     assert.ok(validationError instanceof MongooseError.ValidationError);
     assert.ok(validationError.errors.status);
     assert.equal(validationError.errors.status.kind, "enum");
   });
 
-  it("rejects negative labor hours", () => {
+  it("rejects negative labor hours", async () => {
     const snapshot = new WorkOrderSnapshot({
       externalId: "MX-1010",
       source: "maintainx",
@@ -231,14 +242,14 @@ describe("WorkOrderSnapshot model", () => {
       laborHours: -1,
     });
 
-    const validationError = snapshot.validateSync();
+    const validationError = await getValidationError(snapshot);
 
     assert.ok(validationError instanceof MongooseError.ValidationError);
     assert.ok(validationError.errors.laborHours);
     assert.equal(validationError.errors.laborHours.kind, "min");
   });
 
-  it("rejects an invalid department ObjectId", () => {
+  it("rejects an invalid department ObjectId", async () => {
     const snapshot = new WorkOrderSnapshot({
       externalId: "MX-1011",
       source: "maintainx",
@@ -253,7 +264,7 @@ describe("WorkOrderSnapshot model", () => {
       createdAtSource: Date;
     });
 
-    const validationError = snapshot.validateSync();
+    const validationError = await getValidationError(snapshot);
 
     assert.ok(validationError instanceof MongooseError.ValidationError);
     assert.ok(validationError.errors.department);

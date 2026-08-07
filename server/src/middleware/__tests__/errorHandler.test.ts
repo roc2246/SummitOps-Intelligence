@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import {
+  afterEach,
+  beforeEach,
   describe,
   it,
+  mock,
 } from "node:test";
 
 import type {
@@ -16,6 +19,14 @@ import {
 import { AppError } from "../../utils/AppError.js";
 
 describe("errorHandler", () => {
+  beforeEach(() => {
+    mock.method(console, "error", () => undefined);
+  });
+
+  afterEach(() => {
+    mock.restoreAll();
+  });
+
   function createResponseMock() {
     return {
       statusCode: 200,

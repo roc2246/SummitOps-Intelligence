@@ -3,11 +3,23 @@ import {
   describe,
   it,
 } from "node:test";
+import { Error as MongooseError } from "mongoose";
 
 import User from "../User.js";
 
+async function getValidationError(document: {
+  validate: () => Promise<void>;
+}): Promise<MongooseError.ValidationError | undefined> {
+  try {
+    await document.validate();
+    return undefined;
+  } catch (error) {
+    return error as MongooseError.ValidationError;
+  }
+}
+
 describe("User model", () => {
-  it("creates a valid user", () => {
+  it("creates a valid user", async () => {
     const user = new User({
       username: "riley",
       email: "riley@example.com",
@@ -16,7 +28,7 @@ describe("User model", () => {
       isActive: true,
     });
 
-    const error = user.validateSync();
+    const error = await getValidationError(user);
 
     assert.equal(error, undefined);
   });
@@ -73,13 +85,13 @@ describe("User model", () => {
     );
   });
 
-  it("rejects missing username", () => {
+  it("rejects missing username", async () => {
     const user = new User({
       email: "riley@example.com",
       passwordHash: "hashed-password",
     });
 
-    const error = user.validateSync();
+    const error = await getValidationError(user);
 
     assert.ok(
       error?.errors.username
@@ -91,13 +103,13 @@ describe("User model", () => {
     );
   });
 
-  it("rejects missing email", () => {
+  it("rejects missing email", async () => {
     const user = new User({
       username: "riley",
       passwordHash: "hashed-password",
     });
 
-    const error = user.validateSync();
+    const error = await getValidationError(user);
 
     assert.ok(
       error?.errors.email
@@ -109,13 +121,13 @@ describe("User model", () => {
     );
   });
 
-  it("rejects missing passwordHash", () => {
+  it("rejects missing passwordHash", async () => {
     const user = new User({
       username: "riley",
       email: "riley@example.com",
     });
 
-    const error = user.validateSync();
+    const error = await getValidationError(user);
 
     assert.ok(
       error?.errors.passwordHash
@@ -127,7 +139,7 @@ describe("User model", () => {
     );
   });
 
-  it("rejects an invalid role", () => {
+  it("rejects an invalid role", async () => {
     const user = new User({
       username: "riley",
       email: "riley@example.com",
@@ -135,7 +147,7 @@ describe("User model", () => {
       role: "employee" as never,
     });
 
-    const error = user.validateSync();
+    const error = await getValidationError(user);
 
     assert.ok(
       error?.errors.role

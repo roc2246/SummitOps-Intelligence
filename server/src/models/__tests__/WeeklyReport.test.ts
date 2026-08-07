@@ -4,6 +4,17 @@ import { Error as MongooseError, Types } from "mongoose";
 
 import WeeklyReport from "../WeeklyReport.js";
 
+async function getValidationError(document: {
+  validate: () => Promise<void>;
+}): Promise<MongooseError.ValidationError | undefined> {
+  try {
+    await document.validate();
+    return undefined;
+  } catch (error) {
+    return error as MongooseError.ValidationError;
+  }
+}
+
 describe("WeeklyReport model", () => {
   const departmentId = new Types.ObjectId();
   const userId = new Types.ObjectId();
@@ -11,7 +22,7 @@ describe("WeeklyReport model", () => {
   const weekStart = new Date("2026-08-03T00:00:00.000Z");
   const weekEnd = new Date("2026-08-09T23:59:59.999Z");
 
-  it("creates a valid weekly report", () => {
+  it("creates a valid weekly report", async () => {
     const report = new WeeklyReport({
       department: departmentId,
       weekStart,
@@ -48,7 +59,7 @@ describe("WeeklyReport model", () => {
       createdBy: userId,
     });
 
-    const validationError = report.validateSync();
+    const validationError = await getValidationError(report);
 
     assert.equal(validationError, undefined);
 
@@ -114,14 +125,14 @@ describe("WeeklyReport model", () => {
     );
   });
 
-  it("allows optional approval fields to be omitted", () => {
+  it("allows optional approval fields to be omitted", async () => {
     const report = new WeeklyReport({
       department: departmentId,
       weekStart,
       weekEnd,
     });
 
-    const validationError = report.validateSync();
+    const validationError = await getValidationError(report);
 
     assert.equal(validationError, undefined);
     assert.equal(report.createdBy, undefined);
@@ -129,13 +140,13 @@ describe("WeeklyReport model", () => {
     assert.equal(report.approvedAt, undefined);
   });
 
-  it("rejects a report without a department", () => {
+  it("rejects a report without a department", async () => {
     const report = new WeeklyReport({
       weekStart,
       weekEnd,
     });
 
-    const validationError = report.validateSync();
+    const validationError = await getValidationError(report);
 
     assert.ok(validationError instanceof MongooseError.ValidationError);
     assert.ok(validationError.errors.department);
@@ -145,13 +156,13 @@ describe("WeeklyReport model", () => {
     );
   });
 
-  it("rejects a report without a week start date", () => {
+  it("rejects a report without a week start date", async () => {
     const report = new WeeklyReport({
       department: departmentId,
       weekEnd,
     });
 
-    const validationError = report.validateSync();
+    const validationError = await getValidationError(report);
 
     assert.ok(validationError instanceof MongooseError.ValidationError);
     assert.ok(validationError.errors.weekStart);
@@ -161,13 +172,13 @@ describe("WeeklyReport model", () => {
     );
   });
 
-  it("rejects a report without a week end date", () => {
+  it("rejects a report without a week end date", async () => {
     const report = new WeeklyReport({
       department: departmentId,
       weekStart,
     });
 
-    const validationError = report.validateSync();
+    const validationError = await getValidationError(report);
 
     assert.ok(validationError instanceof MongooseError.ValidationError);
     assert.ok(validationError.errors.weekEnd);
@@ -177,7 +188,7 @@ describe("WeeklyReport model", () => {
     );
   });
 
-  it("rejects an unsupported report status", () => {
+  it("rejects an unsupported report status", async () => {
     const report = new WeeklyReport({
       department: departmentId,
       weekStart,
@@ -190,14 +201,14 @@ describe("WeeklyReport model", () => {
       status: "draft";
     });
 
-    const validationError = report.validateSync();
+    const validationError = await getValidationError(report);
 
     assert.ok(validationError instanceof MongooseError.ValidationError);
     assert.ok(validationError.errors.status);
     assert.equal(validationError.errors.status.kind, "enum");
   });
 
-  it("rejects negative work-order metrics", () => {
+  it("rejects negative work-order metrics", async () => {
     const report = new WeeklyReport({
       department: departmentId,
       weekStart,
@@ -208,7 +219,7 @@ describe("WeeklyReport model", () => {
       },
     });
 
-    const validationError = report.validateSync();
+    const validationError = await getValidationError(report);
 
     assert.ok(validationError instanceof MongooseError.ValidationError);
 
@@ -222,7 +233,7 @@ describe("WeeklyReport model", () => {
     );
   });
 
-  it("rejects negative labor hours", () => {
+  it("rejects negative labor hours", async () => {
     const report = new WeeklyReport({
       department: departmentId,
       weekStart,
@@ -233,7 +244,7 @@ describe("WeeklyReport model", () => {
       },
     });
 
-    const validationError = report.validateSync();
+    const validationError = await getValidationError(report);
 
     assert.ok(validationError instanceof MongooseError.ValidationError);
 
@@ -247,7 +258,7 @@ describe("WeeklyReport model", () => {
     );
   });
 
-  it("rejects a completion rate below zero", () => {
+  it("rejects a completion rate below zero", async () => {
     const report = new WeeklyReport({
       department: departmentId,
       weekStart,
@@ -258,7 +269,7 @@ describe("WeeklyReport model", () => {
       },
     });
 
-    const validationError = report.validateSync();
+    const validationError = await getValidationError(report);
 
     assert.ok(validationError instanceof MongooseError.ValidationError);
 
@@ -272,7 +283,7 @@ describe("WeeklyReport model", () => {
     );
   });
 
-  it("rejects a completion rate above 100", () => {
+  it("rejects a completion rate above 100", async () => {
     const report = new WeeklyReport({
       department: departmentId,
       weekStart,
@@ -283,7 +294,7 @@ describe("WeeklyReport model", () => {
       },
     });
 
-    const validationError = report.validateSync();
+    const validationError = await getValidationError(report);
 
     assert.ok(validationError instanceof MongooseError.ValidationError);
 
@@ -297,7 +308,7 @@ describe("WeeklyReport model", () => {
     );
   });
 
-  it("rejects an invalid department ObjectId", () => {
+  it("rejects an invalid department ObjectId", async () => {
     const report = new WeeklyReport({
       department: "not-an-object-id",
       weekStart,
@@ -308,7 +319,7 @@ describe("WeeklyReport model", () => {
       weekEnd: Date;
     });
 
-    const validationError = report.validateSync();
+    const validationError = await getValidationError(report);
 
     assert.ok(validationError instanceof MongooseError.ValidationError);
     assert.ok(validationError.errors.department);
