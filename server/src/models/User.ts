@@ -30,6 +30,7 @@ const userSchema = new Schema<IUser>(
     passwordHash: {
       type: String,
       required: true,
+      select: false,
     },
 
     role: {
