@@ -9,4 +9,5 @@ export {
 
 export {
   findActiveUserByEmail,
+  findActiveUserByEmailWithPasswordHash,
 } from "./authService.js";

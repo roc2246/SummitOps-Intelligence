@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { hashSync } from "bcryptjs";
 import type {
   AddressInfo,
 } from "node:net";
@@ -27,6 +28,7 @@ import authRoutes from "../authRoutes.js";
 describe("authRoutes", () => {
   let server: Server;
   let baseUrl: string;
+  const originalJwtSecret = process.env.JWT_SECRET;
 
   before(async () => {
     const app = express();
@@ -58,6 +60,7 @@ describe("authRoutes", () => {
 
   afterEach(() => {
     mock.restoreAll();
+    process.env.JWT_SECRET = originalJwtSecret;
   });
 
   after(async () => {
@@ -76,18 +79,24 @@ describe("authRoutes", () => {
   });
 
   it("handles POST /api/auth/login", async () => {
+    process.env.JWT_SECRET = "test-secret";
+
     const fakeUser = {
       _id: "6895cd84173241d61e612345",
       username: "riley",
       email: "riley@example.com",
       role: "supervisor",
       isActive: true,
+      passwordHash: hashSync("correct-password", 8),
     };
 
     mock.method(
       User,
       "findOne",
-      async () => fakeUser as never
+      () =>
+        ({
+          select: async () => fakeUser,
+        }) as never
     );
 
     const response = await fetch(
@@ -103,6 +112,8 @@ describe("authRoutes", () => {
         body: JSON.stringify({
           email:
             "riley@example.com",
+          password:
+            "correct-password",
         }),
       }
     );
@@ -118,6 +129,11 @@ describe("authRoutes", () => {
     assert.equal(
       body.success,
       true
+    );
+
+    assert.equal(
+      typeof body.token,
+      "string"
     );
 
     assert.equal(
