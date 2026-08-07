@@ -10,7 +10,11 @@ import {
 } from "./middleware/index.js";
 
 import healthRouter from "./routes/health.routes.js";
-import { reportRoutes } from "./routes/index.js";
+
+import {
+  authRoutes,
+  reportRoutes,
+} from "./routes/index.js";
 
 dotenv.config();
 
@@ -42,6 +46,11 @@ app.get("/", (_request, response) => {
 app.use(
   "/api/health",
   healthRouter
+);
+
+app.use(
+  "/api/auth",
+  authRoutes
 );
 
 app.use(

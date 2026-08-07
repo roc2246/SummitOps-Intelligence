@@ -22,3 +22,11 @@ export type {
   IWeeklyReportMetrics,
   WeeklyReportStatus,
 } from "./WeeklyReport.js";
+
+
+export { default as User } from "./User.js";
+
+export type {
+  IUser,
+  UserRole,
+} from "./User.js";
