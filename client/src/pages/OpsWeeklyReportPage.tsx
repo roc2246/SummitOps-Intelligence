@@ -1,4 +1,4 @@
-export default function WeeklyReportPage() {
+export default function OpsWeeklyReportPage() {
     return (
         <div className="weekly-report-page">
             <h1 className="weekly-report-page__title">Weekly Report Page</h1>
