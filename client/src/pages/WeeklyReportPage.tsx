@@ -13,7 +13,7 @@ import {
   useAuth,
 } from "../hooks/useAuth";
 
-export default function OpsWeeklyReportPage() {
+export default function WeeklyReportPage() {
   const { user } = useAuth();
 
   const [departmentId, setDepartmentId] =

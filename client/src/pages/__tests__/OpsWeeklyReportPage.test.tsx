@@ -27,10 +27,10 @@ import {
   createWeeklyReport,
 } from "../../api/reportAPI";
 
-import OpsWeeklyReportPage from "../OpsWeeklyReportPage";
+import WeeklyReportPage from "../WeeklyReportPage";
 
 vi.mock(
-  "../../api/reportApi",
+  "../../api/reportAPI",
   () => ({
     createWeeklyReport: vi.fn(),
   })
@@ -53,7 +53,7 @@ function AuthenticatedPage() {
     return null;
   }
 
-  return <OpsWeeklyReportPage />;
+  return <WeeklyReportPage />;
 }
 
 function renderPage() {
