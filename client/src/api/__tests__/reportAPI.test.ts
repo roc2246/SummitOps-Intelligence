@@ -8,6 +8,7 @@ import {
 
 import {
   createWeeklyReport,
+  getWeeklyReports,
 } from "../reportAPI";
 
 describe("createWeeklyReport", () => {
@@ -246,6 +247,126 @@ describe("createWeeklyReport", () => {
       )
     ).rejects.toThrow(
       "Failed to create weekly report"
+    );
+  });
+});
+
+describe("getWeeklyReports", () => {
+  it("gets weekly reports", async () => {
+    const reports = [
+      {
+        _id: "report-123",
+        department: "department-123",
+        weekStart: "2026-08-02",
+        weekEnd: "2026-08-08",
+        status: "draft",
+
+        metrics: {
+          openedWorkOrders: 5,
+          completedWorkOrders: 3,
+          overdueWorkOrders: 1,
+          openBacklog: 2,
+          completionRate: 60,
+          totalLaborHours: 24,
+        },
+      },
+    ];
+
+    const fetchMock = vi
+      .spyOn(
+        globalThis,
+        "fetch"
+      )
+      .mockResolvedValue(
+        new Response(
+          JSON.stringify(reports),
+          {
+            status: 200,
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+          }
+        )
+      );
+
+    const result =
+      await getWeeklyReports(
+        "user-123"
+      );
+
+    expect(
+      fetchMock
+    ).toHaveBeenCalledWith(
+      "http://localhost:5000/api/reports",
+      {
+        headers: {
+          "x-user-id":
+            "user-123",
+        },
+      }
+    );
+
+    expect(result).toEqual(
+      reports
+    );
+  });
+
+  it("throws the backend error message when reports cannot be loaded", async () => {
+    vi.spyOn(
+      globalThis,
+      "fetch"
+    ).mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          success: false,
+          message:
+            "Unable to load reports",
+        }),
+        {
+          status: 500,
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+        }
+      )
+    );
+
+    await expect(
+      getWeeklyReports(
+        "user-123"
+      )
+    ).rejects.toThrow(
+      "Unable to load reports"
+    );
+  });
+
+  it("throws a fallback error when the backend does not provide a message", async () => {
+    vi.spyOn(
+      globalThis,
+      "fetch"
+    ).mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          success: false,
+        }),
+        {
+          status: 500,
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+        }
+      )
+    );
+
+    await expect(
+      getWeeklyReports(
+        "user-123"
+      )
+    ).rejects.toThrow(
+      "Failed to load weekly reports"
     );
   });
 });
