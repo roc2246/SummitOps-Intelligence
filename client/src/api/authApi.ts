@@ -1,3 +1,5 @@
+import { postJson } from "./httpClient";
+
 export interface AuthUser {
   id: string;
   username: string;
@@ -16,30 +18,16 @@ export async function loginUser(
   email: string,
   password: string
 ): Promise<LoginResponse> {
-  const response = await fetch(
-    "http://localhost:5000/api/auth/login",
+  const data = await postJson<LoginResponse, { email: string; password: string }>(
+    "/api/auth/login",
     {
-      method: "POST",
-
-      headers: {
-        "Content-Type": "application/json",
-      },
-
-      body: JSON.stringify({
-        email,
-        password,
-      }),
+      email,
+      password,
+    },
+    {
+      fallbackErrorMessage: "Login failed",
     }
   );
-
-  const data =
-    (await response.json()) as LoginResponse;
-
-  if (!response.ok) {
-    throw new Error(
-      data.message ?? "Login failed"
-    );
-  }
 
   if (!data.user || !data.token) {
     throw new Error(
