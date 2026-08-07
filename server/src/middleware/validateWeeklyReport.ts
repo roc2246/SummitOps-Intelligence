@@ -10,6 +10,10 @@ export interface ValidatedWeeklyReportInput {
   weekEnd: Date;
 }
 
+/**
+ * Parses a strict ISO 8601 UTC timestamp used by the weekly-report payload.
+ * Expected format: YYYY-MM-DDTHH:mm:ss.sssZ
+ */
 function parseIsoUtcDate(value: unknown): Date | null {
   if (
     typeof value !== "string" ||
@@ -25,6 +29,11 @@ function parseIsoUtcDate(value: unknown): Date | null {
     : parsedDate;
 }
 
+/**
+ * Validates weekly report creation payload and stores a typed result on response.locals.
+ * This middleware enforces ObjectId department references and strict UTC timestamps
+ * to keep backend date behavior predictable across time zones.
+ */
 export const validateWeeklyReport: RequestHandler = (
   request,
   response,

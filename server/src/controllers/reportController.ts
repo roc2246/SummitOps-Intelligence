@@ -44,6 +44,11 @@ export async function listWeeklyReports(
   response: Response,
   next: NextFunction
 ): Promise<void> {
+  /**
+   * Supports defensive pagination and optional filters.
+   * Defaults: page=1, limit=20. Maximum limit is capped at 100.
+   * Date filters must parse to valid Date values and weekStartFrom cannot be after weekStartTo.
+   */
   try {
     const pageQuery = request.query.page;
     const limitQuery = request.query.limit;

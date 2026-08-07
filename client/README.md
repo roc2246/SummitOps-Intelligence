@@ -1,32 +1,103 @@
-# React + TypeScript + Vite
+# SummitOps Intelligence Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+This is the React frontend for SummitOps Intelligence.
 
-Currently, two official plugins are available:
+## What It Does
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+The frontend provides:
+- login flow
+- protected navigation
+- dashboard report viewing
+- weekly report creation form
 
-## React Compiler
+It integrates with the backend API at http://localhost:5000.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Frontend Structure
 
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```text
+client/
+  src/
+    api/
+      authApi.ts
+      reportAPI.ts
+      httpClient.ts
+    components/
+      ProtectedRoute.tsx
+      MetricsSummary.tsx
+    context/
+      AuthContext.tsx
+    hooks/
+      useAuth.ts
+    pages/
+      LoginPage.tsx
+      DashboardPage.tsx
+      OpsWeeklyReportPage.tsx
+    test/
+      setup.ts
+    index.scss
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## Auth and Routing
+
+- Auth state is stored in AuthContext.
+- JWT token is persisted in localStorage.
+- ProtectedRoute blocks unauthenticated access to protected pages.
+- App routes are defined in src/App.tsx.
+
+## API Usage
+
+The frontend uses a shared API utility in src/api/httpClient.ts for:
+- base URL handling
+- JSON request/response behavior
+- consistent error handling
+- optional Bearer token injection
+
+Feature APIs:
+- src/api/authApi.ts
+- src/api/reportAPI.ts
+
+## Styling
+
+Global styling is in src/index.scss.
+
+Current styling approach:
+- SCSS variables for base colors
+- BEM-like class naming for page/component blocks
+- semantic markup paired with accessible status and alert regions
+
+## Scripts
+
+From client:
+
+```bash
+npm run dev
+npm run build
+npm run test -- --run
+npm run lint
+npm run preview
+```
+
+From repository root equivalents:
+
+```bash
+npm run dev:client
+npm run build --prefix client
+npm run test --prefix client -- --run
+npm run lint --prefix client
+```
+
+## Environment
+
+Optional environment file:
+
+```env
+VITE_API_URL=http://localhost:5000
+```
+
+Note: current API modules use an in-code base URL constant. Migrating to VITE_API_URL is recommended if you need multi-environment deploys.
+
+## Testing Notes
+
+- Vitest is configured through vite.config.ts.
+- Global test setup is in src/test/setup.ts.
+- Testing Library matchers are loaded once in setup (not per test file).
