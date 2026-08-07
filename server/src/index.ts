@@ -1,3 +1,6 @@
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
@@ -16,7 +19,10 @@ import {
   reportRoutes,
 } from "./routes/index.js";
 
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+dotenv.config({ path: resolve(__dirname, "../.env") });
 
 const app = express();
 
