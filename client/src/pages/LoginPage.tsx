@@ -1,14 +1,20 @@
-import {
-  useState,
-} from "react";
+import { useState } from "react";
 
 import type {
   FormEvent,
 } from "react";
 
 import {
+  useNavigate,
+} from "react-router-dom";
+
+import {
   loginUser,
 } from "../api/authApi";
+
+import {
+  useAuth,
+} from "../hooks/useAuth";
 
 export default function LoginPage() {
   const [email, setEmail] =
@@ -23,6 +29,13 @@ export default function LoginPage() {
   const [loading, setLoading] =
     useState(false);
 
+  const {
+    login,
+  } = useAuth();
+
+  const navigate =
+    useNavigate();
+
   async function handleSubmit(
     event: FormEvent<HTMLFormElement>
   ) {
@@ -35,7 +48,20 @@ export default function LoginPage() {
       const result =
         await loginUser(email);
 
-      console.log(result.user);
+      if (!result.user) {
+        throw new Error(
+          "Login response did not include a user"
+        );
+      }
+
+      login(result.user);
+
+      navigate(
+        "/dashboard",
+        {
+          replace: true,
+        }
+      );
     } catch (error) {
       setError(
         error instanceof Error
@@ -71,7 +97,9 @@ export default function LoginPage() {
           name="email"
           value={email}
           onChange={(event) =>
-            setEmail(event.target.value)
+            setEmail(
+              event.target.value
+            )
           }
           required
         />
@@ -90,7 +118,9 @@ export default function LoginPage() {
           name="password"
           value={password}
           onChange={(event) =>
-            setPassword(event.target.value)
+            setPassword(
+              event.target.value
+            )
           }
         />
 
