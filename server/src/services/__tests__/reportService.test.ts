@@ -1,19 +1,16 @@
 import assert from "node:assert/strict";
 import { afterEach, describe, it, mock } from "node:test";
 import { Types } from "mongoose";
-
 import {
   Department,
   WeeklyReport,
   WorkOrderSnapshot,
 } from "../../models/index.js";
 
-import { generateWeeklyReport } from "../reportService.js";
+import { generateWeeklyReport, getWeeklyReports } from "../reportService.js";
 import { AppError } from "../../utils/AppError.js";
 
-import type {
-  IWorkOrderSnapshot,
-} from "../../models/index.js";
+import type { IWorkOrderSnapshot } from "../../models/index.js";
 
 describe("generateWeeklyReport", () => {
   afterEach(() => {
@@ -31,31 +28,26 @@ describe("generateWeeklyReport", () => {
     mock.method(
       Department,
       "exists",
-      async () => ({ _id: departmentId }) as never
+      async () => ({ _id: departmentId }) as never,
     );
 
     const findMock = mock.method(
       WorkOrderSnapshot,
       "find",
-      async () => workOrders
+      async () => workOrders,
     );
 
-    mock.method(
-      WeeklyReport,
-      "create",
-      async (data: unknown) => data as never
-    );
+    mock.method(WeeklyReport, "create", async (data: unknown) => data as never);
 
-    await generateWeeklyReport(
-      departmentId.toString(),
-      weekStart,
-      weekEnd
-    );
+    await generateWeeklyReport(departmentId.toString(), weekStart, weekEnd);
 
     assert.equal(findMock.mock.callCount(), 1);
 
     const call = findMock.mock.calls[0];
-    assert.ok(call !== undefined, "Expected WorkOrderSnapshot.find to be called");
+    assert.ok(
+      call !== undefined,
+      "Expected WorkOrderSnapshot.find to be called",
+    );
     if (!call) {
       throw new Error("Expected WorkOrderSnapshot.find to be called");
     }
@@ -104,26 +96,18 @@ describe("generateWeeklyReport", () => {
     mock.method(
       Department,
       "exists",
-      async () => ({ _id: departmentId }) as never
+      async () => ({ _id: departmentId }) as never,
     );
 
-    mock.method(
-      WorkOrderSnapshot,
-      "find",
-      async () => workOrders
-    );
+    mock.method(WorkOrderSnapshot, "find", async () => workOrders);
 
     const createMock = mock.method(
       WeeklyReport,
       "create",
-      async (data: unknown) => data as never
+      async (data: unknown) => data as never,
     );
 
-    await generateWeeklyReport(
-      departmentId.toString(),
-      weekStart,
-      weekEnd
-    );
+    await generateWeeklyReport(departmentId.toString(), weekStart, weekEnd);
 
     assert.equal(createMock.mock.callCount(), 1);
 
@@ -157,14 +141,10 @@ describe("generateWeeklyReport", () => {
     mock.method(
       Department,
       "exists",
-      async () => ({ _id: departmentId }) as never
+      async () => ({ _id: departmentId }) as never,
     );
 
-    mock.method(
-      WorkOrderSnapshot,
-      "find",
-      async () => []
-    );
+    mock.method(WorkOrderSnapshot, "find", async () => []);
 
     const createdReport = {
       department: departmentId,
@@ -173,16 +153,12 @@ describe("generateWeeklyReport", () => {
       status: "draft",
     };
 
-    mock.method(
-      WeeklyReport,
-      "create",
-      async () => createdReport as never
-    );
+    mock.method(WeeklyReport, "create", async () => createdReport as never);
 
     const result = await generateWeeklyReport(
       departmentId.toString(),
       weekStart,
-      weekEnd
+      weekEnd,
     );
 
     assert.equal(result, createdReport);
@@ -194,34 +170,66 @@ describe("generateWeeklyReport", () => {
     const weekStart = new Date("2026-08-02T00:00:00.000Z");
     const weekEnd = new Date("2026-08-08T23:59:59.999Z");
 
-    const existsMock = mock.method(
-      Department,
-      "exists",
-      async () => null
-    );
+    const existsMock = mock.method(Department, "exists", async () => null);
 
-    const findMock = mock.method(
-      WorkOrderSnapshot,
-      "find",
-      async () => []
-    );
+    const findMock = mock.method(WorkOrderSnapshot, "find", async () => []);
 
     await assert.rejects(
-      () =>
-        generateWeeklyReport(
-          departmentId.toString(),
-          weekStart,
-          weekEnd
-        ),
+      () => generateWeeklyReport(departmentId.toString(), weekStart, weekEnd),
       (error: unknown) => {
         assert.ok(error instanceof AppError);
         assert.equal(error.statusCode, 404);
         assert.equal(error.message, "Department not found");
         return true;
-      }
+      },
     );
 
     assert.equal(existsMock.mock.callCount(), 1);
     assert.equal(findMock.mock.callCount(), 0);
   });
 });
+
+describe("getWeeklyReports", () => {
+  it("returns weekly reports sorted by newest week first", async () => {
+  const reports = [
+    {
+      weekStart: new Date(
+        "2026-08-02T00:00:00.000Z"
+      ),
+    },
+  ];
+
+  const sortMock = mock.fn(
+    async () => reports
+  );
+
+  const findMock = mock.method(
+    WeeklyReport,
+    "find",
+    () =>
+      ({
+        sort: sortMock,
+      }) as never
+  );
+
+  const result =
+    await getWeeklyReports();
+
+  assert.equal(
+    findMock.mock.callCount(),
+    1
+  );
+
+  assert.deepEqual(
+    sortMock.mock.calls[0].arguments[0],
+    {
+      weekStart: -1,
+    }
+  );
+
+  assert.equal(
+    result,
+    reports
+  );
+});
+})

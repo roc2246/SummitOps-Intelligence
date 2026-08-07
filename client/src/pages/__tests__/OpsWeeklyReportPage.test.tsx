@@ -27,7 +27,7 @@ import {
   createWeeklyReport,
 } from "../../api/reportAPI";
 
-import WeeklyReportPage from "../WeeklyReportPage";
+import WeeklyReportPage from "../OpsWeeklyReportPage";
 
 vi.mock(
   "../../api/reportAPI",

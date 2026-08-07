@@ -42,3 +42,9 @@ export async function generateWeeklyReport(
 
   return report;
 }
+
+export async function getWeeklyReports() {
+  return WeeklyReport.find().sort({
+    weekStart: -1,
+  });
+}

@@ -157,3 +157,53 @@ describe("createWeeklyReport", () => {
     );
   });
 });
+
+describe("listWeeklyReports", () => {
+  it("returns weekly reports", async () => {
+  const reports = [
+    {
+      _id: "report-1",
+      status: "draft",
+    },
+  ];
+
+  const sortMock = mock.fn(
+    async () => reports
+  );
+
+  mock.method(
+    WeeklyReport,
+    "find",
+    () =>
+      ({
+        sort: sortMock,
+      }) as never
+  );
+
+  const request = {} as Request;
+  const response =
+    createResponseMock();
+  const next = mock.fn();
+
+  await listWeeklyReports(
+    request,
+    response as unknown as Response,
+    next as unknown as NextFunction
+  );
+
+  assert.equal(
+    response.statusCode,
+    200
+  );
+
+  assert.deepEqual(
+    response.jsonBody,
+    reports
+  );
+
+  assert.equal(
+    next.mock.callCount(),
+    0
+  );
+  });
+});

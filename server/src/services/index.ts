@@ -4,6 +4,7 @@ export {
 
 export {
   generateWeeklyReport,
+  getWeeklyReports,
 } from "./reportService.js";
 
 export {

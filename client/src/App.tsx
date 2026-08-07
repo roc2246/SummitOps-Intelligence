@@ -10,7 +10,7 @@ import LogoutButton from "./components/auth/LogoutButton";
 
 import DashboardPage from "./pages/DashboardPage";
 import LoginPage from "./pages/LoginPage";
-import WeeklyReportPage from "./pages/WeeklyReportPage";
+import WeeklyReportPage from "./pages/OpsWeeklyReportPage";
 
 import {
   useAuth,

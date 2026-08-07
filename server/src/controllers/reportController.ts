@@ -6,6 +6,7 @@ import type {
 
 import {
   generateWeeklyReport,
+  getWeeklyReports,
 } from "../services/index.js";
 
 import type {
@@ -32,6 +33,23 @@ export async function createWeeklyReport(
     );
 
     res.status(201).json(report);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function listWeeklyReports(
+  _request: Request,
+  response: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const reports =
+      await getWeeklyReports();
+
+    response.status(200).json(
+      reports
+    );
   } catch (error) {
     next(error);
   }

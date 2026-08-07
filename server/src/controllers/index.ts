@@ -1,5 +1,6 @@
 export {
   createWeeklyReport,
+  listWeeklyReports,
 } from "./reportController.js";
 
 export {
