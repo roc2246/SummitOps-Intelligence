@@ -14,6 +14,10 @@ export {
   requireAuth,
 } from "./requireAuth.js";
 
+export {
+  requireRole,
+} from "./requireRole.js";
+
 export type {
   AuthenticatedRequest,
 } from "./requireAuth.js";

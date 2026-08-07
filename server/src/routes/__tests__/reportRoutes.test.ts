@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import {
   after,
   afterEach,
+  beforeEach,
   before,
   describe,
   it,
@@ -10,6 +11,7 @@ import {
 
 import express from "express";
 import type { Server } from "node:http";
+import jwt from "jsonwebtoken";
 import { Types } from "mongoose";
 
 import { errorHandler } from "../../middleware/errorHandler.js";
@@ -23,9 +25,32 @@ import reportRoutes from "../reportRoutes.js";
 describe("reportRoutes", () => {
   let server: Server;
   let baseUrl: string;
+  const originalJwtSecret = process.env.JWT_SECRET;
+
+  function createAccessToken(
+    role: "supervisor" | "manager" | "admin" = "manager"
+  ): string {
+    const secret = process.env.JWT_SECRET;
+
+    if (!secret) {
+      throw new Error("JWT_SECRET must be set in tests");
+    }
+
+    return jwt.sign(
+      {
+        sub: "6895cd84173241d61e612345",
+        role,
+      },
+      secret
+    );
+  }
 
   afterEach(() => {
     mock.restoreAll();
+  });
+
+  beforeEach(() => {
+    process.env.JWT_SECRET = "test-secret";
   });
 
   before(async () => {
@@ -56,6 +81,8 @@ describe("reportRoutes", () => {
   });
 
   after(async () => {
+    process.env.JWT_SECRET = originalJwtSecret;
+
     await new Promise<void>(
       (resolve, reject) => {
         server.close((error) => {
@@ -71,14 +98,23 @@ describe("reportRoutes", () => {
   });
 
   it("returns 404 for an unknown report route", async () => {
+    const token = createAccessToken();
+
     const response = await fetch(
-      `${baseUrl}/api/reports/unknown`
+      `${baseUrl}/api/reports/unknown`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
 
     assert.equal(response.status, 404);
   });
 
   it("creates a weekly report for a valid request", async () => {
+    const token = createAccessToken("manager");
+
     const departmentId = new Types.ObjectId();
 
     mock.method(
@@ -118,6 +154,7 @@ describe("reportRoutes", () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           departmentId: departmentId.toString(),
@@ -148,12 +185,15 @@ describe("reportRoutes", () => {
   });
 
   it("rejects non-UTC weekly report dates", async () => {
+    const token = createAccessToken("manager");
+
     const response = await fetch(
       `${baseUrl}/api/reports/weekly`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           departmentId: "6895cd84173241d61e612345",
@@ -174,6 +214,8 @@ describe("reportRoutes", () => {
   });
 
   it("returns 404 when the department does not exist", async () => {
+    const token = createAccessToken("manager");
+
     mock.method(
       Department,
       "exists",
@@ -186,6 +228,7 @@ describe("reportRoutes", () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           departmentId: "6895cd84173241d61e612345",
@@ -206,6 +249,8 @@ describe("reportRoutes", () => {
   });
 
   it("returns 409 when a report already exists for the week", async () => {
+    const token = createAccessToken("admin");
+
     const departmentId = new Types.ObjectId();
 
     mock.method(
@@ -236,6 +281,7 @@ describe("reportRoutes", () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           departmentId: departmentId.toString(),
@@ -252,6 +298,35 @@ describe("reportRoutes", () => {
     assert.deepEqual(body, {
       success: false,
       message: "A report already exists for that department and week.",
+    });
+  });
+
+  it("returns 403 when supervisor attempts to create a report", async () => {
+    const token = createAccessToken("supervisor");
+
+    const response = await fetch(
+      `${baseUrl}/api/reports/weekly`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          departmentId: "6895cd84173241d61e612345",
+          weekStart: "2026-08-02T00:00:00.000Z",
+          weekEnd: "2026-08-08T23:59:59.999Z",
+        }),
+      }
+    );
+
+    assert.equal(response.status, 403);
+
+    const body = await response.json();
+
+    assert.deepEqual(body, {
+      success: false,
+      message: "Forbidden",
     });
   });
 });

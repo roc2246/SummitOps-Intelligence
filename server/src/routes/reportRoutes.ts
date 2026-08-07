@@ -7,6 +7,7 @@ import {
 
 import {
   requireAuth,
+  requireRole,
   validateWeeklyReport,
 } from "../middleware/index.js";
 
@@ -21,6 +22,7 @@ router.get(
 router.post(
   "/weekly",
   requireAuth,
+  requireRole("manager", "admin"),
   validateWeeklyReport,
   createWeeklyReport
 );
