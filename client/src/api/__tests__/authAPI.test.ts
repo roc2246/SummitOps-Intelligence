@@ -15,13 +15,14 @@ describe("loginUser", () => {
     vi.restoreAllMocks();
   });
 
-  it("sends the email to the login endpoint", async () => {
+  it("sends email and password to the login endpoint", async () => {
     const fetchMock = vi
       .spyOn(globalThis, "fetch")
       .mockResolvedValue(
         new Response(
           JSON.stringify({
             success: true,
+            token: "jwt-token-123",
             user: {
               id: "123",
               username: "supervisor",
@@ -39,7 +40,8 @@ describe("loginUser", () => {
       );
 
     await loginUser(
-      "supervisor@example.com"
+      "supervisor@example.com",
+      "password123"
     );
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -55,6 +57,7 @@ describe("loginUser", () => {
 
         body: JSON.stringify({
           email: "supervisor@example.com",
+          password: "password123",
         }),
       }
     );
@@ -68,6 +71,7 @@ describe("loginUser", () => {
       new Response(
         JSON.stringify({
           success: true,
+          token: "jwt-token-123",
 
           user: {
             id: "123",
@@ -86,11 +90,13 @@ describe("loginUser", () => {
     );
 
     const result = await loginUser(
-      "supervisor@example.com"
+      "supervisor@example.com",
+      "password123"
     );
 
     expect(result).toEqual({
       success: true,
+      token: "jwt-token-123",
 
       user: {
         id: "123",
@@ -122,7 +128,8 @@ describe("loginUser", () => {
 
     await expect(
       loginUser(
-        "missing@example.com"
+        "missing@example.com",
+        "wrong-password"
       )
     ).rejects.toThrow(
       "User not found"
@@ -149,10 +156,45 @@ describe("loginUser", () => {
 
     await expect(
       loginUser(
-        "supervisor@example.com"
+        "supervisor@example.com",
+        "password123"
       )
     ).rejects.toThrow(
       "Login failed"
+    );
+  });
+
+  it("throws when login succeeds but required auth payload is missing", async () => {
+    vi.spyOn(
+      globalThis,
+      "fetch"
+    ).mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          success: true,
+          user: {
+            id: "123",
+            username: "supervisor",
+            email: "supervisor@example.com",
+            role: "supervisor",
+          },
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      )
+    );
+
+    await expect(
+      loginUser(
+        "supervisor@example.com",
+        "password123"
+      )
+    ).rejects.toThrow(
+      "Login response did not include authentication data"
     );
   });
 });

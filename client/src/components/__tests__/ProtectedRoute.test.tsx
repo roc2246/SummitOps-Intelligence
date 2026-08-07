@@ -53,7 +53,7 @@ function LoginBeforeProtectedRoute() {
     username: "supervisor",
     email: "supervisor@example.com",
     role: "supervisor",
-  });
+  }, "jwt-token-123");
 
   return (
     <ProtectedRoute>

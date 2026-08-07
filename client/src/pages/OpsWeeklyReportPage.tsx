@@ -14,7 +14,10 @@ import {
 } from "../hooks/useAuth";
 
 export default function WeeklyReportPage() {
-  const { user } = useAuth();
+  const {
+    token,
+    user,
+  } = useAuth();
 
   const [departmentId, setDepartmentId] =
     useState("");
@@ -39,7 +42,7 @@ export default function WeeklyReportPage() {
   ) {
     event.preventDefault();
 
-    if (!user) {
+    if (!user || !token) {
       setError("You must be logged in");
       return;
     }
@@ -55,7 +58,7 @@ export default function WeeklyReportPage() {
             weekStart,
             weekEnd,
           },
-          user.id
+          token
         );
 
       setReport(result);

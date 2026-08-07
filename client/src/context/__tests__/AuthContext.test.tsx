@@ -44,9 +44,17 @@ function TestConsumer() {
           "No user"}
       </p>
 
+      <p data-testid="token">
+        {auth.token ??
+          "No token"}
+      </p>
+
       <button
         onClick={() =>
-          auth.login(fakeUser)
+          auth.login(
+            fakeUser,
+            "jwt-token-123"
+          )
         }
       >
         Login
@@ -74,6 +82,12 @@ describe("AuthProvider", () => {
     ).toHaveTextContent(
       "No user"
     );
+
+    expect(
+      screen.getByTestId("token")
+    ).toHaveTextContent(
+      "No token"
+    );
   });
 
   it("stores a user when login is called", async () => {
@@ -99,6 +113,12 @@ describe("AuthProvider", () => {
       screen.getByTestId("user")
     ).toHaveTextContent(
       "supervisor@example.com"
+    );
+
+    expect(
+      screen.getByTestId("token")
+    ).toHaveTextContent(
+      "jwt-token-123"
     );
   });
 
@@ -140,6 +160,12 @@ describe("AuthProvider", () => {
       screen.getByTestId("user")
     ).toHaveTextContent(
       "No user"
+    );
+
+    expect(
+      screen.getByTestId("token")
+    ).toHaveTextContent(
+      "No token"
     );
   });
 });

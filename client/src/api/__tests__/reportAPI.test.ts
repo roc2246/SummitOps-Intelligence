@@ -22,8 +22,8 @@ describe("createWeeklyReport", () => {
     weekEnd: "2026-08-08T23:59:59.999Z",
   };
 
-  const userId =
-    "6895cd84173241d61e612346";
+    const token =
+      "jwt-token-123";
 
   const report = {
     _id: "6895cd84173241d61e612347",
@@ -61,7 +61,7 @@ describe("createWeeklyReport", () => {
 
     await createWeeklyReport(
       input,
-      userId
+        token
     );
 
     expect(
@@ -79,8 +79,8 @@ describe("createWeeklyReport", () => {
           "Content-Type":
             "application/json",
 
-          "x-user-id":
-            userId,
+          Authorization:
+            `Bearer ${token}`,
         },
 
         body:
@@ -110,7 +110,7 @@ describe("createWeeklyReport", () => {
     const result =
       await createWeeklyReport(
         input,
-        userId
+          token
       );
 
     expect(result).toEqual(
@@ -118,7 +118,7 @@ describe("createWeeklyReport", () => {
     );
   });
 
-  it("sends the user id in the authentication header", async () => {
+  it("sends the bearer token in the authentication header", async () => {
     const fetchMock = vi
       .spyOn(globalThis, "fetch")
       .mockResolvedValue(
@@ -137,7 +137,7 @@ describe("createWeeklyReport", () => {
 
     await createWeeklyReport(
       input,
-      userId
+      token
     );
 
     expect(
@@ -147,8 +147,8 @@ describe("createWeeklyReport", () => {
 
       expect.objectContaining({
         headers: expect.objectContaining({
-          "x-user-id":
-            userId,
+          Authorization:
+            `Bearer ${token}`,
         }),
       })
     );
@@ -173,7 +173,7 @@ describe("createWeeklyReport", () => {
 
     await createWeeklyReport(
       input,
-      userId
+        token
     );
 
     expect(
@@ -213,7 +213,7 @@ describe("createWeeklyReport", () => {
     await expect(
       createWeeklyReport(
         input,
-        userId
+        token
       )
     ).rejects.toThrow(
       "Invalid departmentId"
@@ -243,7 +243,7 @@ describe("createWeeklyReport", () => {
     await expect(
       createWeeklyReport(
         input,
-        userId
+        token
       )
     ).rejects.toThrow(
       "Failed to create weekly report"
@@ -279,7 +279,15 @@ describe("getWeeklyReports", () => {
       )
       .mockResolvedValue(
         new Response(
-          JSON.stringify(reports),
+          JSON.stringify({
+            data: reports,
+            pagination: {
+              page: 1,
+              limit: 20,
+              total: 1,
+              totalPages: 1,
+            },
+          }),
           {
             status: 200,
             headers: {
@@ -292,7 +300,7 @@ describe("getWeeklyReports", () => {
 
     const result =
       await getWeeklyReports(
-        "user-123"
+        "jwt-token-123"
       );
 
     expect(
@@ -301,8 +309,8 @@ describe("getWeeklyReports", () => {
       "http://localhost:5000/api/reports",
       {
         headers: {
-          "x-user-id":
-            "user-123",
+          Authorization:
+            "Bearer jwt-token-123",
         },
       }
     );
@@ -335,7 +343,7 @@ describe("getWeeklyReports", () => {
 
     await expect(
       getWeeklyReports(
-        "user-123"
+        "jwt-token-123"
       )
     ).rejects.toThrow(
       "Unable to load reports"
@@ -363,7 +371,7 @@ describe("getWeeklyReports", () => {
 
     await expect(
       getWeeklyReports(
-        "user-123"
+        "jwt-token-123"
       )
     ).rejects.toThrow(
       "Failed to load weekly reports"

@@ -11,7 +11,7 @@ import type {
   WeeklyReport,
 } from "../api/reportAPI";
 
-import MetricsSummary from "../components/reports/MetricsSummary";
+import MetricsSummary from "../components/MetricsSummary";
 
 import {
   useAuth,
@@ -20,6 +20,7 @@ import {
 export default function DashboardPage() {
   const {
     user,
+    token,
   } = useAuth();
 
   const [reports, setReports] =
@@ -32,16 +33,18 @@ export default function DashboardPage() {
     useState<string | null>(null);
 
   useEffect(() => {
-    if (!user) {
+    if (!user || !token) {
       setLoading(false);
       return;
     }
+
+    const currentToken = token;
 
     async function loadReports() {
       try {
         const result =
           await getWeeklyReports(
-            user.id
+            currentToken
           );
 
         setReports(result);
@@ -57,7 +60,7 @@ export default function DashboardPage() {
     }
 
     void loadReports();
-  }, [user]);
+  }, [token, user]);
 
   if (loading) {
     return (

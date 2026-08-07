@@ -7,15 +7,17 @@ export interface AuthUser {
 
 export interface LoginResponse {
   success: boolean;
+  token?: string;
   user?: AuthUser;
   message?: string;
 }
 
 export async function loginUser(
-  email: string
+  email: string,
+  password: string
 ): Promise<LoginResponse> {
   const response = await fetch(
-    "./api/auth/login",
+    "http://localhost:5000/api/auth/login",
     {
       method: "POST",
 
@@ -25,6 +27,7 @@ export async function loginUser(
 
       body: JSON.stringify({
         email,
+        password,
       }),
     }
   );
@@ -35,6 +38,12 @@ export async function loginUser(
   if (!response.ok) {
     throw new Error(
       data.message ?? "Login failed"
+    );
+  }
+
+  if (!data.user || !data.token) {
+    throw new Error(
+      "Login response did not include authentication data"
     );
   }
 

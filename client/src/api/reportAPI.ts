@@ -22,9 +22,18 @@ export interface CreateWeeklyReportInput {
   weekEnd: string;
 }
 
+interface PaginatedWeeklyReportResponse {
+  data: WeeklyReport[];
+  message?: string;
+}
+
+interface ApiErrorResponse {
+  message?: string;
+}
+
 export async function createWeeklyReport(
   input: CreateWeeklyReportInput,
-  userId: string
+  token: string
 ): Promise<WeeklyReport> {
   const response = await fetch(
     "http://localhost:5000/api/reports/weekly",
@@ -32,7 +41,7 @@ export async function createWeeklyReport(
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-user-id": userId,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(input),
     }
@@ -42,7 +51,8 @@ export async function createWeeklyReport(
 
   if (!response.ok) {
     throw new Error(
-      data.message ?? "Failed to create weekly report"
+      (data as ApiErrorResponse)
+        .message ?? "Failed to create weekly report"
     );
   }
 
@@ -50,26 +60,34 @@ export async function createWeeklyReport(
 }
 
 export async function getWeeklyReports(
-  userId: string
+  token: string
 ): Promise<WeeklyReport[]> {
   const response = await fetch(
     "http://localhost:5000/api/reports",
     {
       headers: {
-        "x-user-id": userId,
+        Authorization: `Bearer ${token}`,
       },
     }
   );
 
   const data =
-    await response.json();
+    (await response.json()) as
+      | WeeklyReport[]
+      | PaginatedWeeklyReportResponse;
 
   if (!response.ok) {
+    const apiError = data as ApiErrorResponse;
+
     throw new Error(
-      data.message ??
+      apiError.message ??
         "Failed to load weekly reports"
     );
   }
 
-  return data as WeeklyReport[];
+  if (Array.isArray(data)) {
+    return data;
+  }
+
+  return data.data;
 }

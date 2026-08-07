@@ -48,7 +48,7 @@ function AuthenticatedPage() {
       username: "supervisor",
       email: "supervisor@example.com",
       role: "supervisor",
-    });
+    }, "jwt-token-123");
 
     return null;
   }
@@ -165,7 +165,7 @@ describe("WeeklyReportPage", () => {
         weekEnd:
           "2026-08-08",
       },
-      "user-123"
+      "jwt-token-123"
     );
 
     expect(

@@ -46,15 +46,21 @@ export default function LoginPage() {
 
     try {
       const result =
-        await loginUser(email);
+        await loginUser(
+          email,
+          password
+        );
 
-      if (!result.user) {
+      if (!result.user || !result.token) {
         throw new Error(
-          "Login response did not include a user"
+          "Login response did not include authentication data"
         );
       }
 
-      login(result.user);
+      login(
+        result.user,
+        result.token
+      );
 
       navigate(
         "/dashboard",
@@ -122,6 +128,8 @@ export default function LoginPage() {
               event.target.value
             )
           }
+          autoComplete="current-password"
+          required
         />
 
         {error && (
