@@ -35,7 +35,7 @@ describe("generateWeeklyReport", () => {
     mock.method(
       WeeklyReport,
       "create",
-      async (data) => data as never
+      async (data: unknown) => data as never
     );
 
     await generateWeeklyReport(
@@ -47,6 +47,10 @@ describe("generateWeeklyReport", () => {
     assert.equal(findMock.mock.callCount(), 1);
 
     const call = findMock.mock.calls[0];
+    assert.ok(call !== undefined, "Expected WorkOrderSnapshot.find to be called");
+    if (!call) {
+      throw new Error("Expected WorkOrderSnapshot.find to be called");
+    }
 
     assert.deepEqual(call.arguments[0], {
       department: departmentId.toString(),
@@ -98,7 +102,7 @@ describe("generateWeeklyReport", () => {
     const createMock = mock.method(
       WeeklyReport,
       "create",
-      async (data) => data as never
+      async (data: unknown) => data as never
     );
 
     await generateWeeklyReport(
@@ -110,6 +114,10 @@ describe("generateWeeklyReport", () => {
     assert.equal(createMock.mock.callCount(), 1);
 
     const call = createMock.mock.calls[0];
+    assert.ok(call !== undefined, "Expected WeeklyReport.create to be called");
+    if (!call) {
+      throw new Error("Expected WeeklyReport.create to be called");
+    }
 
     assert.deepEqual(call.arguments[0], {
       department: departmentId.toString(),
