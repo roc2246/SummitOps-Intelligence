@@ -1,58 +1,28 @@
-import { useEffect, useState } from "react";
-
-interface HealthResponse {
-  success: boolean;
-  message: string;
-  timestamp: string;
-}
-
-const apiUrl = import.meta.env.VITE_API_URL ?? "http://localhost:5000/api";
+import { Navigate, NavLink, Route, Routes } from "react-router-dom";
+import DashboardPage from "./pages/DashboardPage";
+import LoginPage from "./pages/LoginPage";
+import WeeklyReportPage from "./pages/WeeklyReportPage";
 
 function App() {
-  const [status, setStatus] = useState("Checking API connection...");
-
-  useEffect(() => {
-    const controller = new AbortController();
-
-    async function checkApi(): Promise<void> {
-      try {
-        const response = await fetch(`${apiUrl}/health`, {
-          signal: controller.signal
-        });
-
-        if (!response.ok) {
-          throw new Error(`API returned ${response.status}`);
-        }
-
-        const data = (await response.json()) as HealthResponse;
-        setStatus(`${data.message} — ${data.timestamp}`);
-      } catch (error) {
-        if (error instanceof DOMException && error.name === "AbortError") {
-          return;
-        }
-
-        setStatus(
-          error instanceof Error
-            ? `API unavailable: ${error.message}`
-            : "API unavailable"
-        );
-      }
-    }
-
-    void checkApi();
-
-    return () => controller.abort();
-  }, []);
-
   return (
     <main className="app">
-      <section className="app__card">
-        <h1>MERN TypeScript Starter</h1>
-        <p>
-          React and Sass are running. The message below verifies the Express and
-          MongoDB backend.
-        </p>
-        <p className="app__status">{status}</p>
+      <header className="app__header">
+        <h1>SummitOps Intelligence</h1>
+        <nav className="app__nav" aria-label="Primary navigation">
+          <NavLink to="/dashboard">Dashboard</NavLink>
+          <NavLink to="/weekly-report">Weekly Report</NavLink>
+          <NavLink to="/login">Login</NavLink>
+        </nav>
+      </header>
+
+      <section className="app__content">
+        <Routes>
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/weekly-report" element={<WeeklyReportPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        </Routes>
       </section>
     </main>
   );
