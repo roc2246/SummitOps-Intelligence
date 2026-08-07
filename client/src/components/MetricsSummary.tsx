@@ -15,31 +15,31 @@ export default function MetricsSummary({
         Report Metrics
       </h2>
 
-      <div className="metrics-summary__items">
-        <p className="metrics-summary__item">
+      <ul className="metrics-summary__items">
+        <li className="metrics-summary__item">
           Opened: {metrics.openedWorkOrders}
-        </p>
+        </li>
 
-        <p className="metrics-summary__item">
+        <li className="metrics-summary__item">
           Completed: {metrics.completedWorkOrders}
-        </p>
+        </li>
 
-        <p className="metrics-summary__item">
+        <li className="metrics-summary__item">
           Overdue: {metrics.overdueWorkOrders}
-        </p>
+        </li>
 
-        <p className="metrics-summary__item">
+        <li className="metrics-summary__item">
           Backlog: {metrics.openBacklog}
-        </p>
+        </li>
 
-        <p className="metrics-summary__item">
+        <li className="metrics-summary__item">
           Completion Rate: {metrics.completionRate}%
-        </p>
+        </li>
 
-        <p className="metrics-summary__item">
+        <li className="metrics-summary__item">
           Labor Hours: {metrics.totalLaborHours}
-        </p>
-      </div>
+        </li>
+      </ul>
     </section>
   );
 }

@@ -82,6 +82,7 @@ export default function WeeklyReportPage() {
       <form
         className="weekly-report-page__form"
         onSubmit={handleSubmit}
+        aria-busy={loading}
       >
         <label htmlFor="departmentId">
           Department ID:
@@ -89,9 +90,17 @@ export default function WeeklyReportPage() {
 
         <input
           id="departmentId"
+          name="departmentId"
+          autoComplete="off"
           value={departmentId}
           onChange={(event) =>
             setDepartmentId(event.target.value)
+          }
+          aria-invalid={Boolean(error)}
+          aria-describedby={
+            error
+              ? "weekly-report-error"
+              : undefined
           }
           required
         />
@@ -102,10 +111,17 @@ export default function WeeklyReportPage() {
 
         <input
           id="weekStart"
+          name="weekStart"
           type="date"
           value={weekStart}
           onChange={(event) =>
             setWeekStart(event.target.value)
+          }
+          aria-invalid={Boolean(error)}
+          aria-describedby={
+            error
+              ? "weekly-report-error"
+              : undefined
           }
           required
         />
@@ -116,10 +132,17 @@ export default function WeeklyReportPage() {
 
         <input
           id="weekEnd"
+          name="weekEnd"
           type="date"
           value={weekEnd}
           onChange={(event) =>
             setWeekEnd(event.target.value)
+          }
+          aria-invalid={Boolean(error)}
+          aria-describedby={
+            error
+              ? "weekly-report-error"
+              : undefined
           }
           required
         />
@@ -135,46 +158,56 @@ export default function WeeklyReportPage() {
       </form>
 
       {error && (
-        <p className="weekly-report-page__error">
+        <p
+          id="weekly-report-error"
+          className="weekly-report-page__error"
+          role="alert"
+          aria-live="assertive"
+        >
           {error}
         </p>
       )}
 
       {report && (
-        <section className="weekly-report-page__results">
+        <section
+          className="weekly-report-page__results"
+          aria-live="polite"
+        >
           <h2>
             Report Metrics
           </h2>
 
-          <p>
-            Opened:{" "}
-            {report.metrics.openedWorkOrders}
-          </p>
+          <ul>
+            <li>
+              Opened:{" "}
+              {report.metrics.openedWorkOrders}
+            </li>
 
-          <p>
-            Completed:{" "}
-            {report.metrics.completedWorkOrders}
-          </p>
+            <li>
+              Completed:{" "}
+              {report.metrics.completedWorkOrders}
+            </li>
 
-          <p>
-            Overdue:{" "}
-            {report.metrics.overdueWorkOrders}
-          </p>
+            <li>
+              Overdue:{" "}
+              {report.metrics.overdueWorkOrders}
+            </li>
 
-          <p>
-            Backlog:{" "}
-            {report.metrics.openBacklog}
-          </p>
+            <li>
+              Backlog:{" "}
+              {report.metrics.openBacklog}
+            </li>
 
-          <p>
-            Completion Rate:{" "}
-            {report.metrics.completionRate}%
-          </p>
+            <li>
+              Completion Rate:{" "}
+              {report.metrics.completionRate}%
+            </li>
 
-          <p>
-            Labor Hours:{" "}
-            {report.metrics.totalLaborHours}
-          </p>
+            <li>
+              Labor Hours:{" "}
+              {report.metrics.totalLaborHours}
+            </li>
+          </ul>
         </section>
       )}
     </div>

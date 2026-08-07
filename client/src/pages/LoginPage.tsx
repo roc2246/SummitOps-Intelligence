@@ -88,6 +88,7 @@ export default function LoginPage() {
       <form
         className="login-page__form"
         onSubmit={handleSubmit}
+        aria-busy={loading}
       >
         <label
           className="login-page__label"
@@ -101,11 +102,18 @@ export default function LoginPage() {
           type="email"
           id="email"
           name="email"
+          autoComplete="email"
           value={email}
           onChange={(event) =>
             setEmail(
               event.target.value
             )
+          }
+          aria-invalid={Boolean(error)}
+          aria-describedby={
+            error
+              ? "login-form-error"
+              : undefined
           }
           required
         />
@@ -129,11 +137,22 @@ export default function LoginPage() {
             )
           }
           autoComplete="current-password"
+          aria-invalid={Boolean(error)}
+          aria-describedby={
+            error
+              ? "login-form-error"
+              : undefined
+          }
           required
         />
 
         {error && (
-          <p className="login-page__error">
+          <p
+            id="login-form-error"
+            className="login-page__error"
+            role="alert"
+            aria-live="assertive"
+          >
             {error}
           </p>
         )}

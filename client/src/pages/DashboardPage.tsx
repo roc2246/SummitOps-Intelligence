@@ -64,7 +64,7 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <p>
+      <p role="status" aria-live="polite">
         Loading dashboard...
       </p>
     );
@@ -72,7 +72,11 @@ export default function DashboardPage() {
 
   if (error) {
     return (
-      <p className="dashboard-page__error">
+      <p
+        className="dashboard-page__error"
+        role="alert"
+        aria-live="assertive"
+      >
         {error}
       </p>
     );
