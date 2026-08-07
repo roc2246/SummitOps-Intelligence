@@ -256,8 +256,39 @@ describe("reportRoutes", () => {
     });
   });
 
-  it("rejects non-UTC weekly report dates", async () => {
+  it("accepts date-only weekly report dates and normalizes them", async () => {
     const token = createAccessToken("manager");
+
+    mock.method(
+      Department,
+      "exists",
+      async () => ({ _id: "6895cd84173241d61e612345" }) as never
+    );
+
+    mock.method(
+      WorkOrderSnapshot,
+      "find",
+      async () => []
+    );
+
+    mock.method(
+      WeeklyReport,
+      "create",
+      async () => ({
+        department: "6895cd84173241d61e612345",
+        weekStart: "2026-08-02T00:00:00.000Z",
+        weekEnd: "2026-08-08T23:59:59.999Z",
+        status: "draft",
+        metrics: {
+          openedWorkOrders: 0,
+          completedWorkOrders: 0,
+          overdueWorkOrders: 0,
+          openBacklog: 0,
+          completionRate: 0,
+          totalLaborHours: 0,
+        },
+      }) as never
+    );
 
     const response = await fetch(
       `${baseUrl}/api/reports/weekly`,
@@ -275,14 +306,7 @@ describe("reportRoutes", () => {
       }
     );
 
-    assert.equal(response.status, 400);
-
-    const body = await response.json();
-
-    assert.deepEqual(body, {
-      success: false,
-      message: "weekStart must be an ISO 8601 UTC timestamp",
-    });
+    assert.equal(response.status, 201);
   });
 
   it("returns 404 when the department does not exist", async () => {

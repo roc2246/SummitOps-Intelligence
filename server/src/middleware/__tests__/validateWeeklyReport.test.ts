@@ -239,7 +239,7 @@ describe("validateWeeklyReport", () => {
     );
   });
 
-  it("returns 400 for a non-UTC weekStart string", () => {
+  it("accepts a date-only weekStart string and normalizes it to UTC", () => {
     const request = {
       body: {
         departmentId:
@@ -263,21 +263,26 @@ describe("validateWeeklyReport", () => {
 
     assert.equal(
       response.statusCode,
-      400
+      200
     );
 
     assert.deepEqual(
-      response.jsonBody,
+      response.locals.weeklyReportInput,
       {
-        success: false,
-        message:
-          "weekStart must be an ISO 8601 UTC timestamp",
+        departmentId:
+          "6895cd84173241d61e612345",
+        weekStart: new Date(
+          "2026-08-02T00:00:00.000Z"
+        ),
+        weekEnd: new Date(
+          "2026-08-08T23:59:59.999Z"
+        ),
       }
     );
 
     assert.equal(
       next.mock.callCount(),
-      0
+      1
     );
   });
 

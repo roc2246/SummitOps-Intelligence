@@ -3,6 +3,7 @@ import { Types } from "mongoose";
 
 const isoUtcDateTimePattern =
   /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
+const isoDatePattern = /^\d{4}-\d{2}-\d{2}$/;
 
 export interface ValidatedWeeklyReportInput {
   departmentId: string;
@@ -15,14 +16,20 @@ export interface ValidatedWeeklyReportInput {
  * Expected format: YYYY-MM-DDTHH:mm:ss.sssZ
  */
 function parseIsoUtcDate(value: unknown): Date | null {
-  if (
-    typeof value !== "string" ||
-    !isoUtcDateTimePattern.test(value)
-  ) {
+  if (typeof value !== "string") {
     return null;
   }
 
-  const parsedDate = new Date(value);
+  const normalizedValue =
+    isoDatePattern.test(value)
+      ? `${value}T00:00:00.000Z`
+      : value;
+
+  if (!isoUtcDateTimePattern.test(normalizedValue)) {
+    return null;
+  }
+
+  const parsedDate = new Date(normalizedValue);
 
   return Number.isNaN(parsedDate.getTime())
     ? null
