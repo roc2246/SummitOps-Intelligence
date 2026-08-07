@@ -6,12 +6,21 @@ import {
 } from "react-router-dom";
 
 import ProtectedRoute from "./components/ProtectedRoute";
+import LogoutButton from "./components/auth/LogoutButton";
 
 import DashboardPage from "./pages/DashboardPage";
 import LoginPage from "./pages/LoginPage";
-import OpsWeeklyReportPage from "./pages/OpsWeeklyReportPage";
+import WeeklyReportPage from "./pages/WeeklyReportPage";
+
+import {
+  useAuth,
+} from "./hooks/useAuth";
 
 function App() {
+  const {
+    user,
+  } = useAuth();
+
   return (
     <main className="app">
       <header className="app__header">
@@ -20,17 +29,25 @@ function App() {
         </h1>
 
         <nav className="app__navigation">
-          <NavLink to="/dashboard">
-            Dashboard
-          </NavLink>
+          {user && (
+            <>
+              <NavLink to="/dashboard">
+                Dashboard
+              </NavLink>
 
-          <NavLink to="/weekly-report">
-            Weekly Report
-          </NavLink>
+              <NavLink to="/weekly-report">
+                Weekly Report
+              </NavLink>
 
-          <NavLink to="/login">
-            Login
-          </NavLink>
+              <LogoutButton />
+            </>
+          )}
+
+          {!user && (
+            <NavLink to="/login">
+              Login
+            </NavLink>
+          )}
         </nav>
       </header>
 
@@ -40,7 +57,11 @@ function App() {
             path="/"
             element={
               <Navigate
-                to="/dashboard"
+                to={
+                  user
+                    ? "/dashboard"
+                    : "/login"
+                }
                 replace
               />
             }
@@ -59,21 +80,27 @@ function App() {
             path="/weekly-report"
             element={
               <ProtectedRoute>
-                <OpsWeeklyReportPage />
+                <WeeklyReportPage />
               </ProtectedRoute>
             }
           />
 
           <Route
             path="/login"
-            element={<LoginPage />}
+            element={
+              <LoginPage />
+            }
           />
 
           <Route
             path="*"
             element={
               <Navigate
-                to="/dashboard"
+                to={
+                  user
+                    ? "/dashboard"
+                    : "/login"
+                }
                 replace
               />
             }
