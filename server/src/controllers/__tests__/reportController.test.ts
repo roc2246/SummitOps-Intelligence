@@ -134,8 +134,11 @@ describe("createWeeklyReport", () => {
 
     assert.equal(next.mock.callCount(), 1);
 
+    const firstCall = next.mock.calls[0];
+    assert.ok(firstCall !== undefined);
+
     assert.equal(
-      next.mock.calls[0].arguments[0],
+      firstCall.arguments[0],
       expectedError
     );
   });
