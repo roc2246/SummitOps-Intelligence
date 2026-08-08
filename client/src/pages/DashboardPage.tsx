@@ -86,7 +86,7 @@ export default function DashboardPage() {
     reports[0];
 
   return (
-    <div className="dashboard-page">
+    <div className="dashboard-page grid">
       <h1 className="dashboard-page__title">
         Dashboard
       </h1>

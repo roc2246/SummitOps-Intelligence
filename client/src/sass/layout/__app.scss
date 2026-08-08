@@ -1,26 +1,69 @@
 @use "../abstracts/variables" as vars;
 
 .app {
-  display: grid;
-
   min-height: 100vh;
-  padding: 2rem;
+  padding: 1rem;
 
-  place-items: center;
+  background: vars.$background;
+
+  &__header {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+
+    margin-bottom: 1.5rem;
+  }
+
+  &__navigation {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  &__content {
+    width: 100%;
+    max-width: 75rem;
+    margin: 0 auto;
+  }
 
   &__card {
-    width: min(100%, 42rem);
-    padding: 2rem;
+    width: 100%;
+    padding: 1rem;
 
     background: vars.$surface;
 
     border: 1px solid vars.$border;
     border-radius: 0.75rem;
   }
+}
 
-  &__status {
-    margin-top: 1rem;
+@media (min-width: 48rem) {
+  .app {
+    padding: 1.5rem;
 
-    font-weight: 600;
+    &__header {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    &__navigation {
+      flex-direction: row;
+      align-items: center;
+    }
+
+    &__card {
+      padding: 1.5rem;
+    }
+  }
+}
+
+@media (min-width: 64rem) {
+  .app {
+    padding: 2rem;
+
+    &__card {
+      padding: 2rem;
+    }
   }
 }
