@@ -14,7 +14,7 @@ import {
   AuthProvider,
 } from "./context/AuthContext";
 
-import "./sass/index.scss";
+import "./sass/main.scss";
 
 import App from "./App.tsx";
 

@@ -1,0 +1,14 @@
+@use "../abstracts/variables" as vars;
+
+button {
+  padding: 0.65rem 1rem;
+
+  color: white;
+
+  cursor: pointer;
+
+  background: vars.$accent;
+
+  border: 0;
+  border-radius: 0.4rem;
+}

@@ -1,0 +1,26 @@
+@use "../abstracts/variables" as vars;
+
+.app {
+  display: grid;
+
+  min-height: 100vh;
+  padding: 2rem;
+
+  place-items: center;
+
+  &__card {
+    width: min(100%, 42rem);
+    padding: 2rem;
+
+    background: vars.$surface;
+
+    border: 1px solid vars.$border;
+    border-radius: 0.75rem;
+  }
+
+  &__status {
+    margin-top: 1rem;
+
+    font-weight: 600;
+  }
+}
